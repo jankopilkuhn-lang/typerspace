@@ -4,6 +4,8 @@ import { Enemy } from '../entities/Enemy';
 import { getWordsByDifficulty } from '../data/words';
 import { audioManager } from '../audio/AudioManager';
 import { GAME_CONFIG } from '../config/game-config';
+import { highscoreService } from '../services/HighscoreService';
+import { Difficulty } from '../types/highscore';
 
 /**
  * Level 1 - Main gameplay scene
@@ -28,6 +30,7 @@ export class Level1Scene extends Phaser.State {
     // UI Elements
     private scoreText: any;
     private healthText: any;
+    private highscoreText: any;
     private currentWordText: any;
     private damageOverlay: any;
 
@@ -313,6 +316,16 @@ export class Level1Scene extends Phaser.State {
         const waveConfig = GAME_CONFIG.waves[this.currentWave];
         this.scoreText = this.game.add.text(10, 10, `Welle ${this.currentWave + 1}: 0/${waveConfig.wordsPerWave}`, style);
         this.healthText = this.game.add.text(10, 40, `Leben: ${this.health}`, style);
+
+        // Highscore display
+        const stats = highscoreService.getStats();
+        const personalBest = stats.personalBest[this.speed as Difficulty];
+        const highscoreValue = personalBest ? highscoreService.formatScore(personalBest.score) : '-';
+        this.highscoreText = this.game.add.text(10, 70, `Highscore: ${highscoreValue}`, {
+            font: '20px Courier New',
+            fill: '#FFD700',
+            fontWeight: 'bold'
+        });
 
         // Current word display
         const currentWordStyle = {

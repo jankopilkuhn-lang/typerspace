@@ -164,11 +164,17 @@ export class TyperSpaceGame3D {
         this.uiContainer.style.pointerEvents = 'none';
         this.uiContainer.style.zIndex = '1000';
 
+        // Get personal best highscore
+        const stats = highscoreService.getStats();
+        const personalBest = stats.personalBest[this.speed as Difficulty];
+        const highscoreValue = personalBest ? highscoreService.formatScore(personalBest.score) : '-';
+
         this.uiContainer.innerHTML = `
             <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                 <div>Leben: <span id="health-value" style="color: #00ff00;">${this.health}</span></div>
                 <div><span id="destroyed-value" style="color: #00d4ff;">Welle 1: 0/${GAME_CONFIG.waves[0].wordsPerWave}</span></div>
                 <div>Genauigkeit: <span id="accuracy-value" style="color: #ffaa00;">0.0</span>%</div>
+                <div>Highscore: <span id="highscore-value" style="color: #FFD700;">${highscoreValue}</span></div>
             </div>
             <div id="current-word-display" style="
                 position: absolute;

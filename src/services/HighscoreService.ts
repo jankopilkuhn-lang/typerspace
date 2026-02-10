@@ -233,7 +233,7 @@ export class HighscoreService {
     }
 
     /**
-     * Get the rank of a specific score
+     * Get the rank of a specific score (without saving)
      */
     public getScoreRank(score: number, difficulty: Difficulty): number {
         const topScores = this.getHighscores(difficulty, this.MAX_ENTRIES_PER_DIFFICULTY);
@@ -248,6 +248,14 @@ export class HighscoreService {
         }
 
         return rank;
+    }
+
+    /**
+     * Get the rank of a specific entry (without saving)
+     * This checks the rank based on score only
+     */
+    public getEntryRank(entry: HighscoreEntry): number {
+        return this.getScoreRank(entry.score, entry.difficulty);
     }
 
     /**

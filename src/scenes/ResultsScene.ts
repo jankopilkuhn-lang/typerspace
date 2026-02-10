@@ -251,6 +251,45 @@ export class ResultsScene extends Phaser.State {
 
         document.body.appendChild(input);
 
+        // Create save button
+        const saveButton = document.createElement('button');
+        saveButton.id = 'save-highscore-button';
+        saveButton.textContent = '✓ Speichern';
+        saveButton.style.position = 'absolute';
+        saveButton.style.left = '50%';
+        saveButton.style.top = (yPos + 80) + 'px';
+        saveButton.style.transform = 'translateX(-50%)';
+        saveButton.style.padding = '12px 30px';
+        saveButton.style.fontSize = '20px';
+        saveButton.style.fontFamily = 'Courier New, monospace';
+        saveButton.style.fontWeight = 'bold';
+        saveButton.style.backgroundColor = '#00ff00';
+        saveButton.style.color = '#000000';
+        saveButton.style.border = 'none';
+        saveButton.style.borderRadius = '5px';
+        saveButton.style.cursor = 'pointer';
+        saveButton.style.zIndex = '1000';
+        saveButton.style.transition = 'all 0.2s';
+
+        // Add hover effect
+        saveButton.addEventListener('mouseenter', () => {
+            saveButton.style.backgroundColor = '#00ff00';
+            saveButton.style.boxShadow = '0 0 15px rgba(0, 255, 0, 0.8)';
+            saveButton.style.transform = 'translateX(-50%) scale(1.05)';
+        });
+        saveButton.addEventListener('mouseleave', () => {
+            saveButton.style.backgroundColor = '#00ff00';
+            saveButton.style.boxShadow = 'none';
+            saveButton.style.transform = 'translateX(-50%) scale(1)';
+        });
+
+        // Add click handler
+        saveButton.addEventListener('click', () => {
+            this.saveScoreWithName();
+        });
+
+        document.body.appendChild(saveButton);
+
         // Auto-focus the input
         setTimeout(() => input.focus(), 100);
 
@@ -264,6 +303,7 @@ export class ResultsScene extends Phaser.State {
 
     saveScoreWithName(): void {
         const input = document.getElementById('player-name-input') as HTMLInputElement;
+        const button = document.getElementById('save-highscore-button') as HTMLButtonElement;
         if (!input) return;
 
         const playerName = input.value.trim() || 'Spieler';
@@ -275,8 +315,9 @@ export class ResultsScene extends Phaser.State {
         this.unsavedEntry.playerName = playerName;
         highscoreService.saveScore(this.unsavedEntry);
 
-        // Remove input field
+        // Remove input field and button
         input.remove();
+        if (button) button.remove();
 
         // Show confirmation message
         const confirmStyle = {
@@ -303,10 +344,14 @@ export class ResultsScene extends Phaser.State {
     }
 
     shutdown(): void {
-        // Clean up input field when leaving scene
+        // Clean up input field and button when leaving scene
         const input = document.getElementById('player-name-input');
         if (input) {
             input.remove();
+        }
+        const button = document.getElementById('save-highscore-button');
+        if (button) {
+            button.remove();
         }
     }
 
