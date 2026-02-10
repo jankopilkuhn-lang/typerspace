@@ -17,7 +17,7 @@ export class HighscoreService {
     private readonly STORAGE_KEY = 'typerspace_highscores';
     private readonly VERSION = '1.0';
     private readonly MAX_ENTRIES_PER_DIFFICULTY = 50;
-    private readonly useUpstash: boolean;
+    private useUpstash: boolean; // Not readonly - set dynamically
 
     // Cache for current session
     private cache: HighscoreData | null = null;
