@@ -27,6 +27,8 @@
     "webpack-dev-server": "^4.15.1"
   },
   "dependencies": {
-    "phaser": "2.6.2"
+    "@types/three": "^0.182.0",
+    "phaser": "2.6.2",
+    "three": "^0.182.0"
   }
 }

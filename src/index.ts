@@ -4,6 +4,7 @@ declare var Phaser: any;
 import { MenuScene } from './scenes/MenuScene';
 import { Level1Scene } from './scenes/Level1Scene';
 import { ResultsScene } from './scenes/ResultsScene';
+import { TyperSpaceGame3D } from './game3d/TyperSpaceGame3D';
 
 console.log('TyperSpace module loaded!');
 console.log('Phaser available:', typeof Phaser !== 'undefined');
@@ -84,8 +85,30 @@ function startGame(difficulty: string): void {
     console.log('Game started');
 }
 
+function start3DGame(difficulty: string): void {
+    console.log('Starting 3D game with difficulty:', difficulty);
+
+    // Hide start screen
+    const startScreen = document.getElementById('start-screen');
+    const gameContainer = document.getElementById('game-container');
+
+    if (startScreen) {
+        startScreen.style.display = 'none';
+    }
+    if (gameContainer) {
+        gameContainer.classList.add('active');
+        gameContainer.style.display = 'block';
+        // Clear any existing content
+        gameContainer.innerHTML = '';
+    }
+
+    // Create and start 3D game
+    new TyperSpaceGame3D(gameContainer!, difficulty);
+}
+
 // Attach to window for debugging
 (window as any).startGame = startGame;
+(window as any).start3DGame = start3DGame;
 
 // Setup when DOM is ready
 const setupButtons = (): void => {

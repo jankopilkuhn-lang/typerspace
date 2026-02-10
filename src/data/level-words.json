@@ -35,7 +35,20 @@
         "kommen", "fahren", "reisen", "fliegen", "schwimmen", "tauchen", "segeln", "wandern",
         "spielen", "tanzen", "malen", "zeichnen", "basteln", "bauen", "machen", "tun",
         "wohnen", "leben", "bleiben", "ziehen", "schlafen", "träumen", "wachen", "ruhen",
-        "lieben", "mögen", "hassen", "wollen", "können", "müssen", "dürfen", "sollen"
+        "lieben", "mögen", "hassen", "wollen", "können", "müssen", "dürfen", "sollen",
+        "groß", "klein", "lang", "kurz", "breit", "schmal", "tief", "flach",
+        "dick", "dünn", "hoch", "niedrig", "weit", "eng", "voll", "leer",
+        "alt", "jung", "neu", "frisch", "warm", "kalt", "heiß", "kühl",
+        "hell", "dunkel", "klar", "trüb", "sauber", "schmutzig", "rein", "unrein",
+        "hart", "weich", "fest", "lose", "glatt", "rau", "spitz", "stumpf",
+        "schnell", "langsam", "flink", "träge", "rasch", "gemütlich", "fix", "zügig",
+        "stark", "schwach", "kräftig", "zart", "robust", "fragil", "fest", "locker",
+        "schön", "hässlich", "hübsch", "nett", "edel", "fein", "elegant", "simpel",
+        "gut", "böse", "schlecht", "übel", "recht", "fair", "ehrlich", "falsch",
+        "wahr", "richtig", "genau", "falsch", "korrekt", "präzise", "exakt", "ungefähr",
+        "viel", "wenig", "mehr", "weniger", "etwas", "nichts", "alles", "genug",
+        "laut", "leise", "still", "ruhig", "wild", "zahm", "brav", "frech",
+        "nah", "fern", "nahe", "weit", "fern", "nächst", "direkt", "indirekt"
       ]
     },
     "medium": {
@@ -77,7 +90,21 @@
         "erwarten", "hoffen", "wünschen", "träumen", "glauben", "vertrauen", "zweifeln", "fürchten",
         "beginnen", "starten", "anfangen", "aufhören", "beenden", "fortsetzen", "weitermachen", "pausieren",
         "erinnern", "vergessen", "merken", "behalten", "verlieren", "finden", "suchen", "entdecken",
-        "zeigen", "beweisen", "demonstrieren", "präsentieren", "vorstellen", "erläutern", "beschreiben", "berichten"
+        "zeigen", "beweisen", "demonstrieren", "präsentieren", "vorstellen", "erläutern", "beschreiben", "berichten",
+        "wichtig", "unwichtig", "bedeutend", "relevant", "notwendig", "nötig", "essentiell", "zentral",
+        "möglich", "unmöglich", "machbar", "realisierbar", "praktisch", "theoretisch", "denkbar", "vorstellbar",
+        "schwierig", "leicht", "einfach", "kompliziert", "komplex", "simpel", "trivial", "anspruchsvoll",
+        "interessant", "langweilig", "spannend", "aufregend", "faszinierend", "packend", "mitreißend", "öde",
+        "sicher", "unsicher", "gefährlich", "riskant", "harmlos", "bedrohlich", "kritisch", "bedenklich",
+        "freundlich", "unfreundlich", "höflich", "unhöflich", "nett", "gemein", "lieb", "böse",
+        "glücklich", "traurig", "fröhlich", "betrübt", "heiter", "melancholisch", "lustig", "ernst",
+        "gesund", "krank", "fit", "schwach", "munter", "müde", "wach", "schläfrig",
+        "hungrig", "satt", "durstig", "voll", "leer", "erfüllt", "zufrieden", "unzufrieden",
+        "teuer", "billig", "günstig", "kostspielig", "preiswert", "erschwinglich", "luxuriös", "bescheiden",
+        "modern", "veraltet", "zeitgemäß", "altmodisch", "aktuell", "überholt", "zeitlos", "modisch",
+        "bekannt", "unbekannt", "berühmt", "anonym", "populär", "verbreitet", "geläufig", "fremdartig",
+        "öffentlich", "privat", "geheim", "vertraulich", "persönlich", "allgemein", "speziell", "individuell",
+        "normal", "abnormal", "gewöhnlich", "ungewöhnlich", "üblich", "außergewöhnlich", "selten", "häufig"
       ]
     },
     "hard": {
@@ -127,7 +154,22 @@
         "expandieren", "erweitern", "ausbauen", "vergrößern", "steigern", "erhöhen", "maximieren",
         "stabilisieren", "festigen", "sichern", "konsolidieren", "verstärken", "befestigen", "verankern",
         "regulieren", "kontrollieren", "steuern", "lenken", "dirigieren", "managen", "verwalten",
-        "initiieren", "einleiten", "starten", "lancieren", "aktivieren", "beginnen", "eröffnen"
+        "initiieren", "einleiten", "starten", "lancieren", "aktivieren", "beginnen", "eröffnen",
+        "wissenschaftlich", "technologisch", "theoretisch", "praktisch", "empirisch", "experimentell", "analytisch",
+        "kreativ", "innovativ", "originell", "einzigartig", "außergewöhnlich", "besonders", "bemerkenswert",
+        "effektiv", "effizient", "produktiv", "erfolgreich", "ergebnisorientiert", "zielgerichtet", "zweckmäßig",
+        "nachhaltig", "umweltfreundlich", "ökologisch", "biologisch", "natürlich", "künstlich", "synthetisch",
+        "wirtschaftlich", "finanziell", "kommerziell", "profitabel", "rentabel", "lukrativ", "einträglich",
+        "politisch", "gesellschaftlich", "sozial", "kulturell", "ethnisch", "national", "international",
+        "demokratisch", "autoritär", "liberal", "konservativ", "progressiv", "radikal", "moderat",
+        "rational", "emotional", "logisch", "intuitiv", "vernünftig", "unvernünftig", "objektiv",
+        "subjektiv", "persönlich", "unpersönlich", "individuell", "kollektiv", "universell", "spezifisch",
+        "transparent", "intransparent", "durchsichtig", "undurchsichtig", "offensichtlich", "verborgen", "erkennbar",
+        "zuverlässig", "unzuverlässig", "verlässlich", "vertrauenswürdig", "glaubwürdig", "fraglich", "zweifelhaft",
+        "verantwortlich", "verantwortungsvoll", "verantwortungsbewusst", "gewissenhaft", "pflichtbewusst", "sorgfältig",
+        "flexibel", "starr", "anpassungsfähig", "beweglich", "elastisch", "unbeugsam", "kompromissbereit",
+        "kritisch", "unkritisch", "skeptisch", "misstrauisch", "argwöhnisch", "vertrauensvoll", "gläubig",
+        "traditionell", "konventionell", "klassisch", "herkömmlich", "etabliert", "bewährt", "anerkannt"
       ]
     },
     "ultra": {
@@ -180,7 +222,23 @@
         "problematisieren", "komplizieren", "differenzieren", "relativieren", "kontextualisieren", "perspektivieren",
         "generalisieren", "abstrahieren", "verallgemeinern", "universalisieren", "objektivieren", "subjektivieren",
         "destabilisieren", "dekonstruieren", "demontieren", "demobilisieren", "deaktivieren", "neutralisieren",
-        "rekonstruieren", "restrukturieren", "reorganisieren", "rehabilitieren", "renaturieren", "revitalisieren"
+        "rekonstruieren", "restrukturieren", "reorganisieren", "rehabilitieren", "renaturieren", "revitalisieren",
+        "außergewöhnlich", "ungewöhnlich", "bemerkenswert", "erstaunlich", "spektakulär", "phänomenal", "sensationell",
+        "interdisziplinär", "multidisziplinär", "transdisziplinär", "fachübergreifend", "ganzheitlich", "umfassend",
+        "hochentwickelt", "fortgeschritten", "anspruchsvoll", "kompliziert", "sophisticated", "elaboriert", "raffiniert",
+        "bahnbrechend", "wegweisend", "zukunftsweisend", "visionär", "richtungsweisend", "epochemachend", "revolutionär",
+        "fundamentisch", "grundlegend", "elementar", "essentiell", "substanziell", "wesentlich", "konstitutiv",
+        "kontrovers", "umstritten", "konfliktreich", "problematisch", "konfliktträchtig", "polarisierend", "spaltend",
+        "mehrdeutig", "ambivalent", "zweideutig", "widersprüchlich", "paradox", "inkonsistent", "unvereinbar",
+        "repräsentativ", "beispielhaft", "charakteristisch", "typisch", "symptomatisch", "bezeichnend", "sinnbildlich",
+        "systematisch", "methodisch", "strukturiert", "organisiert", "geordnet", "planmäßig", "zielgerichtet",
+        "differenziert", "nuanciert", "detailliert", "ausführlich", "elaboriert", "komplex", "vielschichtig",
+        "interdependent", "wechselseitig", "reziprok", "gegenseitig", "korrelativ", "komplementär", "symbiotisch",
+        "autonom", "unabhängig", "selbstständig", "eigenständig", "souverän", "autark", "selbstbestimmt",
+        "hierarchisch", "gestaffelt", "gegliedert", "strukturiert", "pyramidal", "vertikal", "horizontal",
+        "quantitativ", "qualitativ", "messbar", "bewertbar", "evaluierbar", "nachvollziehbar", "überprüfbar",
+        "kontraintuitiv", "unerwartlich", "überraschend", "unerwartet", "verblüffend", "erstaunlich", "irritierend",
+        "paradigmatisch", "exemplarisch", "modellhaft", "vorbildlich", "mustergültig", "prototypisch", "archetypisch"
       ]
     }
   }
