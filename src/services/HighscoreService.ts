@@ -25,8 +25,9 @@ export class HighscoreService {
     private initialized: boolean = false;
 
     private constructor() {
-        this.useUpstash = upstashClient.isConfigured();
-        console.log(`HighscoreService initialized with ${this.useUpstash ? 'Upstash' : 'localStorage'}`);
+        // Try Upstash first, will fallback to localStorage if it fails
+        this.useUpstash = true;
+        console.log(`HighscoreService initializing...`);
         this.initializeCache();
     }
 
@@ -34,14 +35,22 @@ export class HighscoreService {
      * Initialize cache (async)
      */
     private async initializeCache(): Promise<void> {
-        if (this.useUpstash) {
+        // Test if Upstash is available
+        const upstashAvailable = await upstashClient.isConfigured();
+
+        if (upstashAvailable) {
+            console.log('HighscoreService using Upstash');
+            this.useUpstash = true;
             try {
                 this.cache = await this.loadFromUpstash();
             } catch (error) {
                 console.error('Failed to load from Upstash, falling back to localStorage:', error);
+                this.useUpstash = false;
                 this.cache = this.loadFromLocalStorage();
             }
         } else {
+            console.log('HighscoreService using localStorage');
+            this.useUpstash = false;
             this.cache = this.loadFromLocalStorage();
         }
         this.initialized = true;

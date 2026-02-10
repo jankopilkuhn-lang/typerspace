@@ -5,33 +5,35 @@
 
 export class UpstashClient {
     private readonly proxyUrl: string;
-    private readonly configured: boolean;
+    private readonly isProduction: boolean;
 
     constructor() {
         // Determine proxy URL based on environment
         // In production (Vercel), use relative API routes
         // In development, use local proxy server
-        const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
-        this.proxyUrl = isProduction
+        this.isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+        this.proxyUrl = this.isProduction
             ? '/api/redis'  // Vercel serverless functions
             : 'http://localhost:3001/api/redis';  // Local proxy server
 
-        // Check if Upstash is configured via environment variables
-        this.configured = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
-
-        if (!this.configured) {
-            console.warn('Upstash credentials not found. Falling back to localStorage.');
-        } else {
-            console.log(`Upstash client configured (via ${isProduction ? 'Vercel' : 'local'} proxy)`);
-            console.log(`Proxy URL: ${this.proxyUrl}`);
-        }
+        console.log(`Upstash client initialized (${this.isProduction ? 'Vercel' : 'local'} mode)`);
+        console.log(`Proxy URL: ${this.proxyUrl}`);
     }
 
     /**
-     * Check if Upstash is configured
+     * Check if Upstash is configured by testing the connection
      */
-    public isConfigured(): boolean {
-        return this.configured;
+    public async isConfigured(): Promise<boolean> {
+        try {
+            // Test connection by checking if API is available
+            const response = await fetch(`${this.proxyUrl}/exists/test`, {
+                method: 'GET',
+            });
+            return response.ok;
+        } catch (error) {
+            console.warn('Upstash API not available, falling back to localStorage');
+            return false;
+        }
     }
 
     /**
