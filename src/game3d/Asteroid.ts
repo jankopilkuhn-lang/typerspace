@@ -9,6 +9,7 @@ export class Asteroid {
     public size: number;
     private textSprite: THREE.Sprite;
     private rotationSpeed: THREE.Vector3;
+    private isProMode: boolean;
 
     constructor(
         scene: THREE.Scene,
@@ -17,10 +18,12 @@ export class Asteroid {
         z: number,
         word: string,
         speed: number,
-        direction?: THREE.Vector3
+        direction?: THREE.Vector3,
+        isProMode: boolean = false
     ) {
         this.word = word;
         this.speed = speed;
+        this.isProMode = isProMode;
 
         // Set velocity based on direction or default to left
         if (direction) {
@@ -167,11 +170,16 @@ export class Asteroid {
     }
 
     public typeCharacter(char: string): boolean {
-        if (this.typedChars < this.word.length &&
-            this.word[this.typedChars].toLowerCase() === char.toLowerCase()) {
-            this.typedChars++;
-            this.updateText();
-            return true;
+        if (this.typedChars < this.word.length) {
+            const expectedChar = this.word[this.typedChars];
+            const inputChar = this.isProMode ? char : char.toLowerCase();
+            const expectedToCompare = this.isProMode ? expectedChar : expectedChar.toLowerCase();
+
+            if (inputChar === expectedToCompare) {
+                this.typedChars++;
+                this.updateText();
+                return true;
+            }
         }
         return false;
     }

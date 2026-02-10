@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TyperSpace - Weltraum Tippspiel</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
     <script src="https://cdn.jsdelivr.net/npm/phaser-ce@2.20.1/build/phaser.min.js"></script>
     <style>
         * {
@@ -114,6 +115,19 @@
         .mode-switch input:checked ~ .mode-label {
             color: #00ff00;
             text-shadow: 0 0 10px rgba(0, 255, 0, 0.6);
+        }
+
+        .mode-description {
+            font-size: 0.9rem;
+            color: #8892b0;
+            max-width: 400px;
+            margin: 0.5rem auto 0;
+            line-height: 1.4;
+            text-align: center;
+        }
+
+        .mode-description.active {
+            color: #00d4ff;
         }
 
         #difficulty-buttons {
@@ -246,7 +260,19 @@
             </label>
         </div>
 
-        <p style="font-size: 1.5rem; margin-top: 2rem; margin-bottom: 1rem; color: #00d4ff;">Wähle deinen Schwierigkeitsgrad:</p>
+        <!-- Professional Mode Toggle -->
+        <div style="margin-top: 1rem;">
+            <label class="mode-switch">
+                <input type="checkbox" id="pro-mode-checkbox">
+                <span class="mode-slider"></span>
+                <span class="mode-label">Profi-Modus</span>
+            </label>
+            <div class="mode-description" id="pro-mode-description">
+                Groß-/Kleinschreibung beachten • Fortschritt wird bei Fehlern zurückgesetzt
+            </div>
+        </div>
+
+        <p style="font-size: 1.5rem; margin-top: 2rem; margin-bottom: 1rem; color: #00d4ff;">Wähle deine Geschwindigkeit:</p>
         <div id="difficulty-buttons">
             <button class="difficulty-btn" data-difficulty="easy">Leicht</button>
             <button class="difficulty-btn" data-difficulty="medium">Mittel</button>
@@ -269,6 +295,20 @@
             star.style.top = Math.random() * 100 + '%';
             star.style.animationDelay = Math.random() * 3 + 's';
             starsContainer.appendChild(star);
+        }
+
+        // Profi-Modus Beschreibung hervorheben
+        const proCheckbox = document.getElementById('pro-mode-checkbox');
+        const proDescription = document.getElementById('pro-mode-description');
+
+        if (proCheckbox && proDescription) {
+            proCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    proDescription.classList.add('active');
+                } else {
+                    proDescription.classList.remove('active');
+                }
+            });
         }
 
     </script>

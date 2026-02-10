@@ -46,6 +46,9 @@ export class MenuScene extends Phaser.State {
         );
         subtitle.anchor.setTo(0.5);
 
+        // Highscores button
+        this.createHighscoresButton();
+
         // Difficulty buttons
         this.createDifficultyButtons();
 
@@ -121,12 +124,75 @@ export class MenuScene extends Phaser.State {
         }
     }
 
+    createHighscoresButton(): void {
+        const buttonStyle = {
+            font: '32px Courier New',
+            fill: '#FFD700',
+            fontWeight: 'bold'
+        };
+
+        const button = this.game.add.text(
+            this.game.width / 2,
+            220,
+            '🏆 Highscores',
+            buttonStyle
+        );
+        button.anchor.setTo(0.5);
+        button.inputEnabled = true;
+        button.input.useHandCursor = true;
+
+        // Border
+        const graphics = this.game.add.graphics(0, 0);
+        graphics.lineStyle(2, 0xFFD700, 1);
+        graphics.drawRoundedRect(
+            button.x - button.width / 2 - 20,
+            button.y - button.height / 2 - 10,
+            button.width + 40,
+            button.height + 20,
+            10
+        );
+
+        // Hover effects
+        button.events.onInputOver.add(() => {
+            button.fontSize = 36;
+            graphics.clear();
+            graphics.lineStyle(3, 0xFFD700, 1);
+            graphics.beginFill(0xFFD700, 0.2);
+            graphics.drawRoundedRect(
+                button.x - button.width / 2 - 20,
+                button.y - button.height / 2 - 10,
+                button.width + 40,
+                button.height + 20,
+                10
+            );
+            graphics.endFill();
+        }, this);
+
+        button.events.onInputOut.add(() => {
+            button.fontSize = 32;
+            graphics.clear();
+            graphics.lineStyle(2, 0xFFD700, 1);
+            graphics.drawRoundedRect(
+                button.x - button.width / 2 - 20,
+                button.y - button.height / 2 - 10,
+                button.width + 40,
+                button.height + 20,
+                10
+            );
+        }, this);
+
+        // Click event
+        button.events.onInputDown.add(() => {
+            this.game.state.start('LeaderboardScene');
+        }, this);
+    }
+
     createDifficultyButtons(): void {
         const difficulties = [
-            { name: 'Leicht', value: 'easy', color: '#00ff00', y: 250 },
-            { name: 'Mittel', value: 'medium', color: '#ffff00', y: 330 },
-            { name: 'Schwer', value: 'hard', color: '#ff9900', y: 410 },
-            { name: 'Ultraschwer', value: 'ultra', color: '#ff0000', y: 490 }
+            { name: 'Leicht', value: 'easy', color: '#00ff00', y: 310 },
+            { name: 'Mittel', value: 'medium', color: '#ffff00', y: 390 },
+            { name: 'Schwer', value: 'hard', color: '#ff9900', y: 470 },
+            { name: 'Ultraschwer', value: 'ultra', color: '#ff0000', y: 550 }
         ];
 
         difficulties.forEach(diff => {

@@ -3,6 +3,7 @@ declare var Phaser: any;
 import { Enemy } from '../entities/Enemy';
 import { getWordsByDifficulty } from '../data/words';
 import { audioManager } from '../audio/AudioManager';
+import { GAME_CONFIG } from '../config/game-config';
 
 /**
  * Level 1 - Main gameplay scene
@@ -15,10 +16,14 @@ export class Level1Scene extends Phaser.State {
 
     // Game stats
     private enemiesDefeated: number = 0;
-    private totalEnemies: number = 50;
+    private waveEnemiesDefeated: number = 0; // Enemies defeated in current wave
     private totalKeystrokes: number = 0;
     private correctKeystrokes: number = 0;
     private startTime: number = 0;
+
+    // Wave system
+    private currentWave: number = 0;
+    private totalWaves: number = GAME_CONFIG.waves.length;
 
     // UI Elements
     private scoreText: any;
@@ -27,24 +32,31 @@ export class Level1Scene extends Phaser.State {
     private damageOverlay: any;
 
     // Game settings
-    private difficulty: string = 'easy';
+    private speed: string = 'easy'; // Speed setting (easy/medium/hard/ultra)
     private spawnTimer: number = 0;
     private spawnInterval: number = 2000; // ms
     private enemySpeed: number = 1;
     private health: number = 3;
+    private isProMode: boolean = false;
+    private waitingForWaveStart: boolean = false; // Pause between waves
 
     // Word list
     private wordList: string[];
     private usedWords: string[] = [];
 
-    init(difficulty?: string): void {
-        if (difficulty) {
-            this.difficulty = difficulty;
+    init(speed?: string, isProMode?: boolean): void {
+        if (speed) {
+            this.speed = speed;
+        }
+        if (isProMode !== undefined) {
+            this.isProMode = isProMode;
         }
 
         // Reset game state
-        this.health = 3;
+        this.health = GAME_CONFIG.startingHealth;
         this.enemiesDefeated = 0;
+        this.waveEnemiesDefeated = 0;
+        this.currentWave = 0;
         this.totalKeystrokes = 0;
         this.correctKeystrokes = 0;
         this.enemies = [];
@@ -52,27 +64,14 @@ export class Level1Scene extends Phaser.State {
         this.usedWords = [];
         this.spawnTimer = 0;
 
-        // Adjust difficulty settings
-        switch (this.difficulty) {
-            case 'easy':
-                this.spawnInterval = 2500;
-                this.enemySpeed = 0.8;
-                break;
-            case 'medium':
-                this.spawnInterval = 2000;
-                this.enemySpeed = 1.2;
-                break;
-            case 'hard':
-                this.spawnInterval = 1500;
-                this.enemySpeed = 1.5;
-                break;
-            case 'ultra':
-                this.spawnInterval = 1000;
-                this.enemySpeed = 2;
-                break;
-        }
+        // Set speed settings from config
+        const speedConfig = GAME_CONFIG.speeds[this.speed];
+        this.spawnInterval = speedConfig.spawnInterval2D;
+        this.enemySpeed = speedConfig.enemySpeed2D;
 
-        this.wordList = getWordsByDifficulty(this.difficulty);
+        // Load words for first wave
+        const waveConfig = GAME_CONFIG.waves[this.currentWave];
+        this.wordList = getWordsByDifficulty(waveConfig.wordDifficulty);
     }
 
     create(): void {
@@ -311,7 +310,8 @@ export class Level1Scene extends Phaser.State {
             fontWeight: 'bold'
         };
 
-        this.scoreText = this.game.add.text(10, 10, `Gegner: 0/${this.totalEnemies}`, style);
+        const waveConfig = GAME_CONFIG.waves[this.currentWave];
+        this.scoreText = this.game.add.text(10, 10, `Welle ${this.currentWave + 1}: 0/${waveConfig.wordsPerWave}`, style);
         this.healthText = this.game.add.text(10, 40, `Leben: ${this.health}`, style);
 
         // Current word display
@@ -337,15 +337,16 @@ export class Level1Scene extends Phaser.State {
     }
 
     spawnEnemy(): void {
-        if (this.enemiesDefeated >= this.totalEnemies) {
-            return;
+        const waveConfig = GAME_CONFIG.waves[this.currentWave];
+        if (this.waveEnemiesDefeated >= waveConfig.wordsPerWave) {
+            return; // Wave complete, no more spawning
         }
 
         const word = this.getRandomWord();
         const x = this.game.width + 50;
         const y = Math.random() * (this.game.height - 100) + 50;
 
-        const enemy = new Enemy(this.game, x, y, word, this.enemySpeed);
+        const enemy = new Enemy(this.game, x, y, word, this.enemySpeed, this.isProMode);
         this.enemies.push(enemy);
     }
 
@@ -366,6 +367,14 @@ export class Level1Scene extends Phaser.State {
 
     onKeyPress(char: string): void {
         if (!char || char.length === 0) return;
+
+        // Check if waiting for wave start (Enter key to continue)
+        if (this.waitingForWaveStart) {
+            if (char === 'Enter' || char === ' ') {
+                this.startNextWave();
+            }
+            return;
+        }
 
         this.totalKeystrokes++;
 
@@ -394,6 +403,24 @@ export class Level1Scene extends Phaser.State {
             } else {
                 // Play error sound for incorrect key
                 audioManager.playErrorSound();
+
+                if (this.isProMode && this.currentTarget) {
+                    // Pro Mode: reset word progress and lose target
+                    this.currentTarget.resetProgress();
+                    this.currentTarget = null;
+                    this.currentWordText.text = '';
+                } else {
+                    // Normal Mode: keep progress but lose target
+                    // (can re-target later by typing the next expected letter)
+                    this.currentTarget = null;
+                    this.currentWordText.text = '';
+
+                    // Try to find a new target with the current character
+                    this.findTargetByFirstLetter(char);
+                    if (this.currentTarget) {
+                        this.updateCurrentWordDisplay();
+                    }
+                }
             }
         }
     }
@@ -401,6 +428,7 @@ export class Level1Scene extends Phaser.State {
     findTargetByFirstLetter(char: string): void {
         // Find enemies that start with this letter
         const candidates = this.enemies.filter(e =>
+            e.typedChars < e.word.length &&
             e.word[e.typedChars].toLowerCase() === char.toLowerCase()
         );
 
@@ -445,7 +473,10 @@ export class Level1Scene extends Phaser.State {
 
         // Update stats
         this.enemiesDefeated++;
-        this.scoreText.text = `Gegner: ${this.enemiesDefeated}/${this.totalEnemies}`;
+        this.waveEnemiesDefeated++;
+
+        const waveConfig = GAME_CONFIG.waves[this.currentWave];
+        this.scoreText.text = `Welle ${this.currentWave + 1}: ${this.waveEnemiesDefeated}/${waveConfig.wordsPerWave}`;
 
         // Clear current target
         if (this.currentTarget === enemy) {
@@ -453,9 +484,9 @@ export class Level1Scene extends Phaser.State {
             this.currentWordText.text = '';
         }
 
-        // Check if level complete
-        if (this.enemiesDefeated >= this.totalEnemies) {
-            this.levelComplete();
+        // Check if wave complete
+        if (this.waveEnemiesDefeated >= waveConfig.wordsPerWave) {
+            this.waveComplete();
         }
     }
 
@@ -553,21 +584,38 @@ export class Level1Scene extends Phaser.State {
     }
 
     update(): void {
+        // Pause game logic during wave transition
+        if (this.waitingForWaveStart) {
+            // Only update player animation during wave transition
+            if (this.player) {
+                const time = this.game.time.now / 1000;
+                const pulseSpeed = 2.0;
+                const pulseAmount = 0.15;
+                this.player.alpha = 1.0 - (Math.sin(time * pulseSpeed) * pulseAmount * 0.5 + pulseAmount * 0.5);
+                const scaleSpeed = 1.5;
+                const scaleAmount = 0.02;
+                const scalePulse = Math.sin(time * scaleSpeed) * scaleAmount;
+                this.player.scale.setTo(1.0 + scalePulse, 1.0 + scalePulse);
+            }
+            return;
+        }
+
         // Update enemies
         this.enemies.forEach(enemy => enemy.update());
 
         // Check collisions
         this.checkCollisions();
 
-        // Spawn new enemies
+        // Spawn new enemies (only if wave not complete)
+        const waveConfig = GAME_CONFIG.waves[this.currentWave];
         this.spawnTimer += this.game.time.elapsed;
-        if (this.spawnTimer >= this.spawnInterval && this.enemiesDefeated < this.totalEnemies) {
+        if (this.spawnTimer >= this.spawnInterval && this.waveEnemiesDefeated < waveConfig.wordsPerWave) {
             this.spawnEnemy();
             this.spawnTimer = 0;
         }
 
         // === NEON GLOW PULSING ANIMATION ===
-        // Create smooth pulsing effect for the spaceship
+        // Create smooth pulsing effect for the spaceship (only during active gameplay)
         if (this.player) {
             const time = this.game.time.now / 1000; // Convert to seconds
 
@@ -584,6 +632,95 @@ export class Level1Scene extends Phaser.State {
         }
     }
 
+    waveComplete(): void {
+        // Clear all remaining enemies
+        for (const enemy of this.enemies) {
+            enemy.destroy();
+        }
+        this.enemies = [];
+        this.currentTarget = null;
+
+        // Move to next wave
+        this.currentWave++;
+
+        // Check if all waves complete
+        if (this.currentWave >= this.totalWaves) {
+            this.levelComplete();
+            return;
+        }
+
+        // Pause game and wait for player input
+        this.waitingForWaveStart = true;
+
+        // Show wave transition message with "Press ENTER" prompt
+        const waveConfig = GAME_CONFIG.waves[this.currentWave];
+        this.showWaveTransition(waveConfig.waveName);
+    }
+
+    startNextWave(): void {
+        // Destroy transition texts
+        if ((this as any).waveTransitionText) {
+            (this as any).waveTransitionText.destroy();
+        }
+        if ((this as any).wavePromptText) {
+            (this as any).wavePromptText.destroy();
+        }
+        if ((this as any).wavePulseTween) {
+            (this as any).wavePulseTween.stop();
+        }
+
+        // Reset wave stats
+        this.waveEnemiesDefeated = 0;
+        this.usedWords = [];
+
+        // Load words for next wave
+        const waveConfig = GAME_CONFIG.waves[this.currentWave];
+        this.wordList = getWordsByDifficulty(waveConfig.wordDifficulty);
+
+        // Resume game
+        this.waitingForWaveStart = false;
+
+        // Update UI
+        this.scoreText.text = `Welle ${this.currentWave + 1}: 0/${waveConfig.wordsPerWave}`;
+    }
+
+    showWaveTransition(waveName: string): void {
+        // Create transition text
+        const transitionText = this.game.add.text(
+            this.game.width / 2,
+            this.game.height / 2 - 50,
+            `Welle abgeschlossen!\n\n${waveName}`,
+            {
+                font: 'bold 48px Courier New',
+                fill: '#00ff00',
+                align: 'center'
+            }
+        );
+        transitionText.anchor.setTo(0.5);
+
+        // Create "Press ENTER" text
+        const promptText = this.game.add.text(
+            this.game.width / 2,
+            this.game.height / 2 + 80,
+            'Drücke ENTER um fortzufahren',
+            {
+                font: 'bold 28px Courier New',
+                fill: '#00d4ff',
+                align: 'center'
+            }
+        );
+        promptText.anchor.setTo(0.5);
+
+        // Pulsing animation for prompt
+        const pulse = this.game.add.tween(promptText);
+        pulse.to({ alpha: 0.3 }, 800, Phaser.Easing.Quadratic.InOut, true, 0, -1, true);
+
+        // Store references to destroy later when wave starts
+        (this as any).waveTransitionText = transitionText;
+        (this as any).wavePromptText = promptText;
+        (this as any).wavePulseTween = pulse;
+    }
+
     levelComplete(): void {
         const endTime = Date.now();
         const totalTime = (endTime - this.startTime) / 1000; // in seconds
@@ -593,6 +730,9 @@ export class Level1Scene extends Phaser.State {
             : 0;
 
         const wpm = Math.round((this.correctKeystrokes / 5) / (totalTime / 60));
+
+        // Calculate total enemies from all waves
+        const totalEnemies = GAME_CONFIG.waves.reduce((sum, wave) => sum + wave.wordsPerWave, 0);
 
         // Play level complete sound
         audioManager.playLevelCompleteSound();
@@ -605,8 +745,14 @@ export class Level1Scene extends Phaser.State {
             accuracy: accuracy,
             wpm: wpm,
             time: totalTime,
-            difficulty: this.difficulty,
-            success: true
+            difficulty: this.speed,
+            success: true,
+            proMode: this.isProMode,
+            enemiesDefeated: this.enemiesDefeated,
+            totalEnemies: totalEnemies,
+            correctKeystrokes: this.correctKeystrokes,
+            totalKeystrokes: this.totalKeystrokes,
+            mode: '2D'
         });
     }
 
@@ -618,21 +764,30 @@ export class Level1Scene extends Phaser.State {
             ? Math.round((this.correctKeystrokes / this.totalKeystrokes) * 100)
             : 0;
 
+        const wpm = Math.round((this.correctKeystrokes / 5) / (totalTime / 60));
+
+        // Calculate total enemies from all waves
+        const totalEnemies = GAME_CONFIG.waves.reduce((sum, wave) => sum + wave.wordsPerWave, 0);
+
         // Play game over sound
         audioManager.playGameOverSound();
 
         // Stop gameplay music
         audioManager.stopBackgroundMusic();
 
-        const wpm = Math.round((this.correctKeystrokes / 5) / (totalTime / 60));
-
         // Go to results scene
         this.game.state.start('ResultsScene', true, false, {
             accuracy: accuracy,
             wpm: wpm,
             time: totalTime,
-            difficulty: this.difficulty,
-            success: false
+            difficulty: this.speed,
+            success: false,
+            proMode: this.isProMode,
+            enemiesDefeated: this.enemiesDefeated,
+            totalEnemies: totalEnemies,
+            correctKeystrokes: this.correctKeystrokes,
+            totalKeystrokes: this.totalKeystrokes,
+            mode: '2D'
         });
     }
 }

@@ -3,6 +3,9 @@ import { Asteroid } from './Asteroid';
 import { Boss } from './Boss';
 import { getWordsByDifficulty } from '../data/words';
 import { audioManager } from '../audio/AudioManager';
+import { GAME_CONFIG } from '../config/game-config';
+import { highscoreService } from '../services/HighscoreService';
+import { Difficulty } from '../types/highscore';
 
 export class TyperSpaceGame3D {
     private scene: THREE.Scene;
@@ -15,10 +18,11 @@ export class TyperSpaceGame3D {
     private container: HTMLElement;
 
     // Game state
-    private difficulty: string;
+    private speed: string; // Speed setting (easy/medium/hard/ultra)
+    private isProMode: boolean;
     private health: number = 3;
     private destroyed: number = 0;
-    private totalAsteroids: number = 50;
+    private waveDestroyed: number = 0; // Asteroids destroyed in current wave
     private totalKeystrokes: number = 0;
     private correctKeystrokes: number = 0;
     private gameActive: boolean = true;
@@ -27,6 +31,12 @@ export class TyperSpaceGame3D {
     private asteroidSpeed: number = 3.0;
     private startTime: number = 0;
 
+    // Wave system
+    private currentWave: number = 0;
+    private totalWaves: number = GAME_CONFIG.waves.length;
+    private inBossFight: boolean = false;
+    private waitingForWaveStart: boolean = false; // Pause between waves
+
     // Word list
     private words: string[];
     private usedWords: string[] = [];
@@ -34,30 +44,19 @@ export class TyperSpaceGame3D {
     // UI
     private uiContainer: HTMLElement;
 
-    constructor(containerElement: HTMLElement, difficulty: string) {
+    constructor(containerElement: HTMLElement, speed: string, isProMode: boolean = false) {
         this.container = containerElement;
-        this.difficulty = difficulty;
-        this.words = getWordsByDifficulty(difficulty);
+        this.speed = speed;
+        this.isProMode = isProMode;
 
-        // Adjust difficulty settings
-        switch (difficulty) {
-            case 'easy':
-                this.spawnInterval = 2.5;
-                this.asteroidSpeed = 2.5;
-                break;
-            case 'medium':
-                this.spawnInterval = 2.0;
-                this.asteroidSpeed = 3.0;
-                break;
-            case 'hard':
-                this.spawnInterval = 1.5;
-                this.asteroidSpeed = 3.5;
-                break;
-            case 'ultra':
-                this.spawnInterval = 1.0;
-                this.asteroidSpeed = 4.0;
-                break;
-        }
+        // Set speed settings from config
+        const speedConfig = GAME_CONFIG.speeds[speed];
+        this.spawnInterval = speedConfig.spawnInterval3D;
+        this.asteroidSpeed = speedConfig.asteroidSpeed3D;
+
+        // Load words for first wave
+        const waveConfig = GAME_CONFIG.waves[this.currentWave];
+        this.words = getWordsByDifficulty(waveConfig.wordDifficulty);
 
         this.scene = new THREE.Scene();
         this.camera = new THREE.PerspectiveCamera(
@@ -168,7 +167,7 @@ export class TyperSpaceGame3D {
         this.uiContainer.innerHTML = `
             <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                 <div>Leben: <span id="health-value" style="color: #00ff00;">${this.health}</span></div>
-                <div>Zerstört: <span id="destroyed-value" style="color: #00d4ff;">${this.destroyed}</span> / ${this.totalAsteroids}</div>
+                <div><span id="destroyed-value" style="color: #00d4ff;">Welle 1: 0/${GAME_CONFIG.waves[0].wordsPerWave}</span></div>
                 <div>Genauigkeit: <span id="accuracy-value" style="color: #ffaa00;">0.0</span>%</div>
             </div>
             <div id="current-word-display" style="
@@ -187,7 +186,10 @@ export class TyperSpaceGame3D {
     }
 
     private spawnAsteroid(): void {
-        if (this.destroyed >= this.totalAsteroids) return;
+        if (this.inBossFight) return; // No spawning during boss fight
+
+        const waveConfig = GAME_CONFIG.waves[this.currentWave];
+        if (this.waveDestroyed >= waveConfig.wordsPerWave) return; // Wave complete
 
         const word = this.getRandomWord();
 
@@ -204,7 +206,8 @@ export class TyperSpaceGame3D {
             z,
             word,
             this.asteroidSpeed,
-            direction
+            direction,
+            this.isProMode
         );
 
         this.asteroids.push(asteroid);
@@ -227,6 +230,15 @@ export class TyperSpaceGame3D {
         if (!this.gameActive) return;
 
         const char = event.key;
+
+        // Check if waiting for wave start (Enter key to continue)
+        if (this.waitingForWaveStart) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                this.startNextWave();
+            }
+            return;
+        }
+
         if (!/^[a-zA-ZäöüÄÖÜß]$/.test(char)) return;
 
         this.totalKeystrokes++;
@@ -240,16 +252,18 @@ export class TyperSpaceGame3D {
                 if (this.boss.isDefeated()) {
                     this.boss.createExplosion(this.scene);
                     this.boss.destroy(this.scene);
-                    this.boss = null;
                     audioManager.playEnemyDefeatedSound();
-                    this.victory();
+                    this.bossDefeated();
                 }
 
                 this.updateUI();
                 return;
             } else {
                 audioManager.playErrorSound();
-                this.boss.resetProgress();
+                // In Pro Mode, reset word progress on wrong input
+                if (this.isProMode) {
+                    this.boss.resetProgress();
+                }
             }
             this.updateUI();
             return;
@@ -270,32 +284,48 @@ export class TyperSpaceGame3D {
                 return;
             } else {
                 audioManager.playErrorSound();
-                this.currentTarget.resetProgress();
-                this.currentTarget = null;
-            }
-        }
-
-        // Find new target
-        this.currentTarget = null;
-        let closestDistance = Infinity;
-
-        for (const asteroid of this.asteroids) {
-            if (asteroid.typedChars === 0 &&
-                asteroid.word[0].toLowerCase() === char.toLowerCase()) {
-                const distance = asteroid.getPosition().distanceTo(this.camera.position);
-
-                if (distance < closestDistance) {
-                    closestDistance = distance;
-                    this.currentTarget = asteroid;
+                if (this.isProMode) {
+                    // Pro Mode: reset word progress and lose target
+                    this.currentTarget.resetProgress();
+                    this.currentTarget = null;
+                } else {
+                    // Normal Mode: keep progress but lose target
+                    // (can re-target later by typing the next expected letter)
+                    this.currentTarget = null;
                 }
             }
         }
 
-        if (this.currentTarget) {
-            this.currentTarget.typeCharacter(char);
-            this.correctKeystrokes++;
-            audioManager.playTypeSound();
-            this.updateUI();
+        // Find new target (only if we don't have one)
+        if (!this.currentTarget) {
+            let closestDistance = Infinity;
+
+            for (const asteroid of this.asteroids) {
+                // Check if the typed character matches the expected character at current position
+                if (asteroid.typedChars < asteroid.word.length &&
+                    asteroid.word[asteroid.typedChars].toLowerCase() === char.toLowerCase()) {
+                    const distance = asteroid.getPosition().distanceTo(this.camera.position);
+
+                    if (distance < closestDistance) {
+                        closestDistance = distance;
+                        this.currentTarget = asteroid;
+                    }
+                }
+            }
+
+            if (this.currentTarget) {
+                this.currentTarget.typeCharacter(char);
+                this.correctKeystrokes++;
+                audioManager.playTypeSound();
+
+                // Check if asteroid is now complete and destroy it
+                if (this.currentTarget.isComplete()) {
+                    this.destroyAsteroid(this.currentTarget);
+                    this.currentTarget = null;
+                }
+
+                this.updateUI();
+            }
         }
     }
 
@@ -309,17 +339,121 @@ export class TyperSpaceGame3D {
         }
 
         this.destroyed++;
+        this.waveDestroyed++;
         audioManager.playEnemyDefeatedSound();
 
-        if (this.destroyed >= this.totalAsteroids && !this.bossSpawned) {
-            this.spawnBoss();
+        // Check if wave complete
+        const waveConfig = GAME_CONFIG.waves[this.currentWave];
+        if (this.waveDestroyed >= waveConfig.wordsPerWave && !this.inBossFight) {
+            this.waveComplete();
         }
 
         this.updateUI();
     }
 
+    private waveComplete(): void {
+        // Clear all remaining asteroids
+        for (const asteroid of this.asteroids) {
+            asteroid.destroy(this.scene);
+        }
+        this.asteroids = [];
+        this.currentTarget = null;
+
+        // Spawn boss for this wave
+        this.spawnBoss();
+    }
+
+    private bossDefeated(): void {
+        this.boss = null;
+        this.inBossFight = false;
+        this.bossSpawned = false;
+
+        // Move to next wave
+        this.currentWave++;
+
+        // Check if all waves complete
+        if (this.currentWave >= this.totalWaves) {
+            this.victory();
+            return;
+        }
+
+        // Pause game and wait for player input
+        this.waitingForWaveStart = true;
+
+        // Show wave transition with "Press ENTER" prompt
+        const waveConfig = GAME_CONFIG.waves[this.currentWave];
+        this.showWaveTransition(waveConfig.waveName);
+    }
+
+    private startNextWave(): void {
+        // Remove transition overlay
+        const overlay = document.getElementById('wave-transition-overlay');
+        if (overlay) {
+            overlay.remove();
+        }
+
+        // Reset wave stats
+        this.waveDestroyed = 0;
+        this.usedWords = [];
+
+        // Load words for next wave
+        const waveConfig = GAME_CONFIG.waves[this.currentWave];
+        this.words = getWordsByDifficulty(waveConfig.wordDifficulty);
+
+        // Resume game
+        this.waitingForWaveStart = false;
+
+        // Update UI
+        this.updateUI();
+    }
+
+    private showWaveTransition(waveName: string): void {
+        // Create overlay
+        const overlay = document.createElement('div');
+        overlay.id = 'wave-transition-overlay';
+        overlay.style.position = 'absolute';
+        overlay.style.top = '50%';
+        overlay.style.left = '50%';
+        overlay.style.transform = 'translate(-50%, -50%)';
+        overlay.style.textAlign = 'center';
+        overlay.style.fontFamily = 'Courier New, monospace';
+        overlay.style.zIndex = '1000';
+
+        overlay.innerHTML = `
+            <div style="font-size: 56px; font-weight: bold; color: #00ff00; text-shadow: 0 0 20px rgba(0, 255, 0, 0.8); margin-bottom: 30px;">
+                Boss besiegt!
+            </div>
+            <div style="font-size: 48px; font-weight: bold; color: #00ff00; text-shadow: 0 0 20px rgba(0, 255, 0, 0.8); margin-bottom: 50px;">
+                ${waveName}
+            </div>
+            <div id="press-enter-prompt" style="font-size: 32px; font-weight: bold; color: #00d4ff; text-shadow: 0 0 15px rgba(0, 212, 255, 0.8);">
+                Drücke ENTER um fortzufahren
+            </div>
+        `;
+
+        this.container.style.position = 'relative';
+        this.container.appendChild(overlay);
+
+        // Pulsing animation for "Press ENTER"
+        let opacity = 1;
+        let direction = -1;
+        const pulseInterval = setInterval(() => {
+            const promptElement = document.getElementById('press-enter-prompt');
+            if (!promptElement) {
+                clearInterval(pulseInterval);
+                return;
+            }
+            opacity += direction * 0.02;
+            if (opacity <= 0.3 || opacity >= 1) {
+                direction *= -1;
+            }
+            promptElement.style.opacity = opacity.toString();
+        }, 30);
+    }
+
     private spawnBoss(): void {
         this.bossSpawned = true;
+        this.inBossFight = true;
 
         // Clear all remaining asteroids when boss appears
         for (const asteroid of this.asteroids) {
@@ -336,7 +470,8 @@ export class TyperSpaceGame3D {
             0,
             0,
             bossWords,
-            3.0
+            3.0,
+            this.isProMode
         );
 
         console.log('⚠️ BOSS ERSCHEINT! ⚠️');
@@ -348,7 +483,15 @@ export class TyperSpaceGame3D {
         const accuracyEl = document.getElementById('accuracy-value');
 
         if (healthEl) healthEl.textContent = this.health.toString();
-        if (destroyedEl) destroyedEl.textContent = this.destroyed.toString();
+
+        if (destroyedEl) {
+            if (this.inBossFight) {
+                destroyedEl.textContent = `Boss-Kampf!`;
+            } else {
+                const waveConfig = GAME_CONFIG.waves[this.currentWave];
+                destroyedEl.textContent = `Welle ${this.currentWave + 1}: ${this.waveDestroyed}/${waveConfig.wordsPerWave}`;
+            }
+        }
 
         if (accuracyEl && this.totalKeystrokes > 0) {
             const accuracy = (this.correctKeystrokes / this.totalKeystrokes * 100).toFixed(1);
@@ -387,6 +530,35 @@ export class TyperSpaceGame3D {
     }
 
     private showResults(accuracy: number, wpm: number, time: number, success: boolean): void {
+        // Calculate total enemies from all waves
+        const totalEnemies = GAME_CONFIG.waves.reduce((sum, wave) => sum + wave.wordsPerWave, 0);
+
+        // Calculate and save highscore
+        const entry = highscoreService.createEntry({
+            correctKeystrokes: this.correctKeystrokes,
+            totalKeystrokes: this.totalKeystrokes,
+            enemiesDefeated: this.destroyed,
+            totalEnemies: totalEnemies,
+            time: time,
+            difficulty: this.speed as Difficulty,
+            proMode: this.isProMode,
+            mode: '3D',
+            success: success
+        });
+
+        highscoreService.saveScore(entry);
+
+        // Check if it's a new highscore
+        const isNewHighscore = highscoreService.isNewHighscore(entry.score, this.speed as Difficulty);
+        const highscoreRank = highscoreService.getLastSavedScoreRank(this.speed as Difficulty);
+
+        // Build new highscore banner HTML
+        const highscoreBanner = isNewHighscore && highscoreRank
+            ? `<div style="font-size: 2rem; color: #00ff00; margin-bottom: 1.5rem; font-weight: bold;">
+                   🏆 NEUER HIGHSCORE! #${highscoreRank} 🏆
+               </div>`
+            : '';
+
         this.container.innerHTML = `
             <div style="
                 display: flex;
@@ -399,28 +571,36 @@ export class TyperSpaceGame3D {
                 font-family: 'Courier New', monospace;
                 background: linear-gradient(135deg, #0a0e27 0%, #1a1a2e 50%, #16213e 100%);
             ">
-                <h1 style="font-size: 4rem; color: ${success ? '#00ff00' : '#ff0000'}; margin-bottom: 2rem;">
+                <h1 style="font-size: 4rem; color: ${success ? '#00ff00' : '#ff0000'}; margin-bottom: 1rem;">
                     ${success ? '🎉 Sieg!' : '💥 Game Over'}
                 </h1>
+                <div style="font-size: 2.5rem; color: #FFD700; margin-bottom: 1rem; font-weight: bold;">
+                    ⭐ SCORE: ${highscoreService.formatScore(entry.score)} ⭐
+                </div>
+                ${highscoreBanner}
+                <div style="font-size: 1.3rem; color: #8892b0; margin-bottom: 0.5rem;">
+                    <p>Schwierigkeit: ${this.speed.toUpperCase()} ${this.isProMode ? '⚡ Profi-Modus' : ''}</p>
+                </div>
                 <div style="font-size: 1.5rem; color: #8892b0; margin-bottom: 2rem;">
                     <p>Genauigkeit: ${accuracy}%</p>
                     <p>Tippgeschwindigkeit: ${wpm} WPM</p>
                     <p>Zeit: ${time.toFixed(1)}s</p>
-                    <p>Schwierigkeit: ${this.difficulty.toUpperCase()}</p>
                 </div>
-                <button onclick="location.reload()" style="
-                    padding: 15px 40px;
-                    font-size: 1.3rem;
-                    font-weight: bold;
-                    color: #fff;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    border: 2px solid #00d4ff;
-                    border-radius: 50px;
-                    cursor: pointer;
-                    font-family: 'Courier New', monospace;
-                ">
-                    Zurück zum Menü
-                </button>
+                <div style="display: flex; gap: 20px;">
+                    <button onclick="location.reload()" style="
+                        padding: 15px 40px;
+                        font-size: 1.3rem;
+                        font-weight: bold;
+                        color: #fff;
+                        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                        border: 2px solid #00d4ff;
+                        border-radius: 50px;
+                        cursor: pointer;
+                        font-family: 'Courier New', monospace;
+                    ">
+                        🏠 Zurück zum Menü
+                    </button>
+                </div>
             </div>
         `;
     }
@@ -437,6 +617,12 @@ export class TyperSpaceGame3D {
         requestAnimationFrame(this.animate);
 
         const deltaTime = 0.016; // ~60 FPS
+
+        // Pause game logic during wave transition
+        if (this.waitingForWaveStart) {
+            this.renderer.render(this.scene, this.camera);
+            return;
+        }
 
         // Spawn asteroids (only if boss hasn't spawned yet)
         if (!this.bossSpawned) {

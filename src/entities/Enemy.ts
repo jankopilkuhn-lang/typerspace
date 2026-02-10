@@ -12,11 +12,13 @@ export class Enemy {
     private game: any;
     private size: number;
     private rotationSpeed: number;
+    private isProMode: boolean;
 
-    constructor(game: any, x: number, y: number, word: string, speed: number) {
+    constructor(game: any, x: number, y: number, word: string, speed: number, isProMode: boolean = false) {
         this.game = game;
         this.word = word;
         this.speed = speed;
+        this.isProMode = isProMode;
 
         // Random size variation: small (0.6-0.8), medium (0.8-1.2), large (1.2-1.6)
         const sizeCategories = [
@@ -240,8 +242,11 @@ export class Enemy {
 
     isTyped(char: string): boolean {
         if (this.typedChars < this.word.length) {
-            const expectedChar = this.word[this.typedChars].toLowerCase();
-            if (char.toLowerCase() === expectedChar) {
+            const expectedChar = this.word[this.typedChars];
+            const inputChar = this.isProMode ? char : char.toLowerCase();
+            const expectedToCompare = this.isProMode ? expectedChar : expectedChar.toLowerCase();
+
+            if (inputChar === expectedToCompare) {
                 this.typedChars++;
                 this.updateTypedText();
                 return true;
@@ -252,6 +257,11 @@ export class Enemy {
 
     isComplete(): boolean {
         return this.typedChars === this.word.length;
+    }
+
+    resetProgress(): void {
+        this.typedChars = 0;
+        this.updateTypedText();
     }
 
     destroy(): void {

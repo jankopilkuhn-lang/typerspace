@@ -4,29 +4,42 @@ declare var Phaser: any;
 import { MenuScene } from './scenes/MenuScene';
 import { Level1Scene } from './scenes/Level1Scene';
 import { ResultsScene } from './scenes/ResultsScene';
+import { LeaderboardScene } from './scenes/LeaderboardScene';
 import { TyperSpaceGame3D } from './game3d/TyperSpaceGame3D';
+import { testUpstashConnection } from './utils/testUpstash';
 
 console.log('TyperSpace module loaded!');
 console.log('Phaser available:', typeof Phaser !== 'undefined');
 
-let gameStarted = false;
-let selectedDifficulty: string | null = null;
-let isRetroMode = false;
+// Make test function available globally
+(window as any).testUpstash = testUpstashConnection;
 
-function startGame(difficulty: string): void {
-    console.log('startGame function called with difficulty:', difficulty);
+let gameStarted = false;
+let selectedSpeed: string | null = null; // Now represents speed, not difficulty
+let isRetroMode = false;
+let isProMode = false;
+
+function startGame(speed: string): void {
+    console.log('startGame function called with speed:', speed);
     if (gameStarted) {
         console.log('Game already started, returning');
         return;
     }
     gameStarted = true;
-    selectedDifficulty = difficulty;
+    selectedSpeed = speed;
 
     // Check retro mode checkbox
     const retroCheckbox = document.getElementById('retro-mode-checkbox') as HTMLInputElement;
     if (retroCheckbox) {
         isRetroMode = retroCheckbox.checked;
         console.log('Retro mode enabled:', isRetroMode);
+    }
+
+    // Check pro mode checkbox
+    const proCheckbox = document.getElementById('pro-mode-checkbox') as HTMLInputElement;
+    if (proCheckbox) {
+        isProMode = proCheckbox.checked;
+        console.log('Pro mode enabled:', isProMode);
     }
 
     // Hide start screen
@@ -64,29 +77,30 @@ function startGame(difficulty: string): void {
     game.state.add('MenuScene', MenuScene);
     game.state.add('Level1Scene', Level1Scene);
     game.state.add('ResultsScene', ResultsScene);
+    game.state.add('LeaderboardScene', LeaderboardScene);
     console.log('Scenes added');
 
     // Start game based on mode
     if (isRetroMode) {
         // Start 2D Phaser game (Retro mode)
-        if (selectedDifficulty) {
-            console.log('Starting 2D Retro Mode - Level1Scene with difficulty:', selectedDifficulty);
-            game.state.start('Level1Scene', true, false, selectedDifficulty);
+        if (selectedSpeed) {
+            console.log('Starting 2D Retro Mode - Level1Scene with speed:', selectedSpeed);
+            game.state.start('Level1Scene', true, false, selectedSpeed, isProMode);
         } else {
             console.log('Starting 2D Retro Mode - MenuScene');
             game.state.start('MenuScene');
         }
     } else {
         // 3D mode - redirect to 3D game
-        console.log('Starting 3D Mode with difficulty:', selectedDifficulty);
-        start3DGame(selectedDifficulty);
+        console.log('Starting 3D Mode with speed:', selectedSpeed);
+        start3DGame(selectedSpeed);
         return;
     }
     console.log('Game started');
 }
 
-function start3DGame(difficulty: string): void {
-    console.log('Starting 3D game with difficulty:', difficulty);
+function start3DGame(speed: string): void {
+    console.log('Starting 3D game with speed:', speed);
 
     // Hide start screen
     const startScreen = document.getElementById('start-screen');
@@ -103,7 +117,7 @@ function start3DGame(difficulty: string): void {
     }
 
     // Create and start 3D game
-    new TyperSpaceGame3D(gameContainer!, difficulty);
+    new TyperSpaceGame3D(gameContainer!, speed, isProMode);
 }
 
 // Attach to window for debugging

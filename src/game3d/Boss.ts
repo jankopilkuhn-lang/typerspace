@@ -12,6 +12,7 @@ export class Boss {
     private textSprite: THREE.Sprite;
     private rotationSpeed: THREE.Vector3;
     private glowMesh: THREE.Mesh;
+    private isProMode: boolean;
 
     constructor(
         scene: THREE.Scene,
@@ -19,10 +20,12 @@ export class Boss {
         y: number,
         z: number,
         words: string[],
-        speed: number
+        speed: number,
+        isProMode: boolean = false
     ) {
         this.words = words;
         this.speed = speed;
+        this.isProMode = isProMode;
 
         // Slow velocity
         this.velocity = new THREE.Vector3(-speed * 0.5, 0, 0);
@@ -177,23 +180,28 @@ export class Boss {
     public typeCharacter(char: string): boolean {
         const currentWord = this.words[this.currentWordIndex];
 
-        if (this.typedChars < currentWord.length &&
-            currentWord[this.typedChars].toLowerCase() === char.toLowerCase()) {
-            this.typedChars++;
-            this.updateText();
+        if (this.typedChars < currentWord.length) {
+            const expectedChar = currentWord[this.typedChars];
+            const inputChar = this.isProMode ? char : char.toLowerCase();
+            const expectedToCompare = this.isProMode ? expectedChar : expectedChar.toLowerCase();
 
-            // Check if word is complete
-            if (this.typedChars >= currentWord.length) {
-                this.currentWordIndex++;
-                this.typedChars = 0;
+            if (inputChar === expectedToCompare) {
+                this.typedChars++;
+                this.updateText();
 
-                // Move to next word or mark as defeated
-                if (this.currentWordIndex < this.words.length) {
-                    this.updateText();
+                // Check if word is complete
+                if (this.typedChars >= currentWord.length) {
+                    this.currentWordIndex++;
+                    this.typedChars = 0;
+
+                    // Move to next word or mark as defeated
+                    if (this.currentWordIndex < this.words.length) {
+                        this.updateText();
+                    }
                 }
-            }
 
-            return true;
+                return true;
+            }
         }
         return false;
     }

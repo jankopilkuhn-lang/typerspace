@@ -6,7 +6,10 @@
   "scripts": {
     "dev": "webpack serve --mode development",
     "build": "webpack --mode production && copyfiles -f public/index.html dist",
-    "start": "npm run dev"
+    "proxy": "node server.js",
+    "start": "concurrently \"npm run proxy\" \"npm run dev\"",
+    "start:frontend": "npm run dev",
+    "start:proxy": "npm run proxy"
   },
   "keywords": [
     "game",
@@ -16,8 +19,11 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "concurrently": "^9.2.1",
     "copyfiles": "^2.4.1",
     "css-loader": "^6.8.1",
+    "dotenv": "^17.2.4",
+    "dotenv-webpack": "^8.1.1",
     "file-loader": "^6.2.0",
     "phaser-ce": "^2.20.2",
     "style-loader": "^3.3.3",
@@ -29,6 +35,8 @@
   },
   "dependencies": {
     "@types/three": "^0.182.0",
+    "cors": "^2.8.6",
+    "express": "^5.2.1",
     "phaser": "2.6.2",
     "three": "^0.182.0"
   }
