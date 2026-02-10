@@ -1,0 +1,28 @@
+TyperSpace
+
+Spielprinzip
+- Spielerisch 10 Finger-schreiben lernen in einer grafischen Oberfläche
+- Spielplan mit mehreren Leveln und Endgegnern
+- Ein Level 
+- Highscore
+- Schwierigkeitsgrade leicht, mittel, schwer, ultraschwer
+
+Das Spiel soll einer Person helfen, dass "Zehn Finger schreiben" spielerisch beizubringen
+Das Szenario ist ein Weltraum. 
+Die Sprache des Spiels und die der Worte sind deutsch.
+Das Spiel findet in Echtzeit statt.
+
+Im Spiel wird von links nach rechts gespielt, auf der linken Seite ist die Spielfigur. Und auf der rechten Seite kommen die Gegner angeflogen mit einem Wort auf dem Körper. Diese müssen gesiegt werden bevor sie den Spieler erreichen. 
+Besiegen kann der Spieler den Gegner in dem er das Wort eingibt. Gibt es 2 Gegner mit dem gleichen Anfangsbuchstaben, wird immer der Gegner genommen der den Spieler am nächsten ist.
+Berührt ein Gegner den Spieler ist das Level verloren und muss von vorne begonnen werden.
+
+Pro Level sollten ungefähr 50 Gegner besiegt werden.
+
+
+Am Ende eines Levels wird die Tippgenauigkeit und die Tippgeschwindigkeit angezeigt.
+
+Objekte die von rechts kommen können folgende sein:
+- Asteroiden
+- Asteroidensplitter
+- Aliens
+- Raumschiffe

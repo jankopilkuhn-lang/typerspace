@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TyperSpace - Weltraum Tippspiel</title>
+    <script src="https://cdn.jsdelivr.net/npm/phaser-ce@2.20.1/build/phaser.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1a2e 50%, #16213e 100%);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        #start-screen {
+            text-align: center;
+            color: #fff;
+            z-index: 10;
+            animation: fadeIn 1.5s ease-in;
+        }
+
+        #start-screen h1 {
+            font-size: 4rem;
+            font-weight: bold;
+            background: linear-gradient(90deg, #00d4ff, #7b2cbf, #ff006e);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 30px rgba(0, 212, 255, 0.5);
+            letter-spacing: 0.1em;
+        }
+
+        #start-screen p {
+            font-size: 1.2rem;
+            color: #8892b0;
+            margin-bottom: 2rem;
+        }
+
+        #game-mode-toggle {
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+        }
+
+        .mode-switch {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            gap: 15px;
+        }
+
+        .mode-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .mode-slider {
+            position: relative;
+            width: 60px;
+            height: 30px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: 2px solid #00d4ff;
+            border-radius: 30px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.5);
+        }
+
+        .mode-slider:before {
+            content: "";
+            position: absolute;
+            height: 22px;
+            width: 22px;
+            left: 4px;
+            top: 2px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+        }
+
+        .mode-switch input:checked + .mode-slider {
+            background: linear-gradient(135deg, #00ff00 0%, #00aa00 100%);
+            border-color: #00ff00;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.6);
+        }
+
+        .mode-switch input:checked + .mode-slider:before {
+            transform: translateX(30px);
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.8);
+        }
+
+        .mode-label {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #00d4ff;
+            text-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+            transition: all 0.3s ease;
+        }
+
+        .mode-switch input:checked ~ .mode-label {
+            color: #00ff00;
+            text-shadow: 0 0 10px rgba(0, 255, 0, 0.6);
+        }
+
+        #difficulty-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .difficulty-btn {
+            padding: 15px 60px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            color: #fff;
+            border: 2px solid;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Courier New', monospace;
+            min-width: 250px;
+        }
+
+        .difficulty-btn[data-difficulty="easy"] {
+            background: linear-gradient(135deg, #00ff00 0%, #00aa00 100%);
+            border-color: #00ff00;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+        }
+
+        .difficulty-btn[data-difficulty="easy"]:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 40px rgba(0, 255, 0, 0.8);
+            background: linear-gradient(135deg, #00aa00 0%, #00ff00 100%);
+        }
+
+        .difficulty-btn[data-difficulty="medium"] {
+            background: linear-gradient(135deg, #ffff00 0%, #ccaa00 100%);
+            border-color: #ffff00;
+            box-shadow: 0 0 20px rgba(255, 255, 0, 0.5);
+            color: #000;
+        }
+
+        .difficulty-btn[data-difficulty="medium"]:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 40px rgba(255, 255, 0, 0.8);
+            background: linear-gradient(135deg, #ccaa00 0%, #ffff00 100%);
+        }
+
+        .difficulty-btn[data-difficulty="hard"] {
+            background: linear-gradient(135deg, #ff9900 0%, #cc6600 100%);
+            border-color: #ff9900;
+            box-shadow: 0 0 20px rgba(255, 153, 0, 0.5);
+        }
+
+        .difficulty-btn[data-difficulty="hard"]:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 40px rgba(255, 153, 0, 0.8);
+            background: linear-gradient(135deg, #cc6600 0%, #ff9900 100%);
+        }
+
+        .difficulty-btn[data-difficulty="ultra"] {
+            background: linear-gradient(135deg, #ff0000 0%, #aa0000 100%);
+            border-color: #ff0000;
+            box-shadow: 0 0 20px rgba(255, 0, 0, 0.5);
+        }
+
+        .difficulty-btn[data-difficulty="ultra"]:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 40px rgba(255, 0, 0, 0.8);
+            background: linear-gradient(135deg, #aa0000 0%, #ff0000 100%);
+        }
+
+        #game-container {
+            width: 100%;
+            max-width: 1200px;
+            height: 100vh;
+            display: none;
+        }
+
+        #game-container.active {
+            display: block;
+        }
+
+        .stars {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .star {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            animation: twinkle 3s infinite;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+    </style>
+</head>
+<body>
+    <div class="stars" id="stars"></div>
+
+    <div id="start-screen">
+        <h1>TyperSpace</h1>
+        <p>Tippe dich durch den Weltraum!</p>
+
+        <!-- Game Mode Toggle -->
+        <div id="game-mode-toggle">
+            <label class="mode-switch">
+                <input type="checkbox" id="retro-mode-checkbox">
+                <span class="mode-slider"></span>
+                <span class="mode-label">2D Retro-Modus</span>
+            </label>
+        </div>
+
+        <p style="font-size: 1.5rem; margin-top: 2rem; margin-bottom: 1rem; color: #00d4ff;">Wähle deinen Schwierigkeitsgrad:</p>
+        <div id="difficulty-buttons">
+            <button class="difficulty-btn" data-difficulty="easy">Leicht</button>
+            <button class="difficulty-btn" data-difficulty="medium">Mittel</button>
+            <button class="difficulty-btn" data-difficulty="hard">Schwer</button>
+            <button class="difficulty-btn" data-difficulty="ultra">Ultraschwer</button>
+        </div>
+    </div>
+
+    <div id="game-container"></div>
+
+    <script>
+        // Sterne generieren
+        const starsContainer = document.getElementById('stars');
+        for (let i = 0; i < 100; i++) {
+            const star = document.createElement('div');
+            star.className = 'star';
+            star.style.width = Math.random() * 3 + 'px';
+            star.style.height = star.style.width;
+            star.style.left = Math.random() * 100 + '%';
+            star.style.top = Math.random() * 100 + '%';
+            star.style.animationDelay = Math.random() * 3 + 's';
+            starsContainer.appendChild(star);
+        }
+
+    </script>
+    <script src="index.js"></script>
+</body>
+</html>
