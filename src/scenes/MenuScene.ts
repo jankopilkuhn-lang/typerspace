@@ -3,7 +3,8 @@ declare var Phaser: any;
 import { audioManager } from '../audio/AudioManager';
 
 /**
- * Menu Scene - Difficulty selection
+ * Menu Scene - Difficulty selection and Highscores
+ * Updated: 2026-02-11 - Ensure Vercel rebuild
  */
 export class MenuScene extends Phaser.State {
     private game: any;
