@@ -32,3 +32,6 @@ nul
 
 # Debug
 .eslintcache
+
+# Claude Code
+.claude/settings.local.json
