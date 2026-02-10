@@ -321,6 +321,13 @@ export class TyperSpaceGame3D {
     private spawnBoss(): void {
         this.bossSpawned = true;
 
+        // Clear all remaining asteroids when boss appears
+        for (const asteroid of this.asteroids) {
+            asteroid.destroy(this.scene);
+        }
+        this.asteroids = [];
+        this.currentTarget = null;
+
         const bossWords = ['schwarzesloch', 'supernova', 'gravitationswelle'];
 
         this.boss = new Boss(
@@ -431,11 +438,13 @@ export class TyperSpaceGame3D {
 
         const deltaTime = 0.016; // ~60 FPS
 
-        // Spawn asteroids
-        this.spawnTimer += deltaTime;
-        if (this.spawnTimer >= this.spawnInterval) {
-            this.spawnAsteroid();
-            this.spawnTimer = 0;
+        // Spawn asteroids (only if boss hasn't spawned yet)
+        if (!this.bossSpawned) {
+            this.spawnTimer += deltaTime;
+            if (this.spawnTimer >= this.spawnInterval) {
+                this.spawnAsteroid();
+                this.spawnTimer = 0;
+            }
         }
 
         // Update asteroids
