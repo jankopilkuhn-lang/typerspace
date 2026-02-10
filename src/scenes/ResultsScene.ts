@@ -22,6 +22,7 @@ export class ResultsScene extends Phaser.State {
     private score: number;
     private isNewHighscore: boolean;
     private highscoreRank: number | null;
+    private unsavedEntry: any; // Store entry before saving with name
 
     init(data: any): void {
         this.accuracy = data.accuracy || 0;
@@ -36,7 +37,7 @@ export class ResultsScene extends Phaser.State {
         this.totalKeystrokes = data.totalKeystrokes || 0;
         this.mode = data.mode || '2D';
 
-        // Calculate and save highscore
+        // Calculate score (but don't save yet - wait for name input)
         const entry = highscoreService.createEntry({
             correctKeystrokes: this.correctKeystrokes,
             totalKeystrokes: this.totalKeystrokes,
@@ -50,9 +51,10 @@ export class ResultsScene extends Phaser.State {
         });
 
         this.score = entry.score;
-        highscoreService.saveScore(entry);
+        this.unsavedEntry = entry; // Store for later saving with name
 
-        // Check if it's a new highscore
+        // Check if it's a new highscore (temporarily save to check rank)
+        highscoreService.saveScore(entry);
         this.isNewHighscore = highscoreService.isNewHighscore(this.score, this.difficulty as Difficulty);
         this.highscoreRank = highscoreService.getLastSavedScoreRank(this.difficulty as Difficulty);
     }
@@ -109,6 +111,10 @@ export class ResultsScene extends Phaser.State {
             highscoreBanner.anchor.setTo(0.5);
             yPos += 50;
         }
+
+        // Name input field
+        this.createNameInput(yPos);
+        yPos += 80;
 
         // Difficulty and mode indicators
         const infoStyle = {
@@ -190,6 +196,120 @@ export class ResultsScene extends Phaser.State {
         return '🐌 Langsam und stetig';
     }
 
+    createNameInput(yPos: number): void {
+        // Label text
+        const labelStyle = {
+            font: '24px Courier New',
+            fill: '#00d4ff',
+            fontWeight: 'bold'
+        };
+        const label = this.game.add.text(
+            this.game.width / 2,
+            yPos,
+            'Dein Name für die Rangliste:',
+            labelStyle
+        );
+        label.anchor.setTo(0.5);
+
+        // Create HTML input element
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.id = 'player-name-input';
+        input.placeholder = 'Spieler';
+        input.maxLength = 20;
+        input.style.position = 'absolute';
+        input.style.left = '50%';
+        input.style.top = (yPos + 35) + 'px';
+        input.style.transform = 'translateX(-50%)';
+        input.style.width = '300px';
+        input.style.padding = '10px';
+        input.style.fontSize = '20px';
+        input.style.fontFamily = 'Courier New, monospace';
+        input.style.textAlign = 'center';
+        input.style.backgroundColor = '#1a1e3a';
+        input.style.color = '#ffffff';
+        input.style.border = '2px solid #00d4ff';
+        input.style.borderRadius = '5px';
+        input.style.outline = 'none';
+        input.style.zIndex = '1000';
+
+        // Add focus effect
+        input.addEventListener('focus', () => {
+            input.style.borderColor = '#00ff00';
+            input.style.boxShadow = '0 0 10px rgba(0, 255, 0, 0.5)';
+        });
+        input.addEventListener('blur', () => {
+            input.style.borderColor = '#00d4ff';
+            input.style.boxShadow = 'none';
+        });
+
+        // Load saved name from localStorage
+        const savedName = localStorage.getItem('typerspace_player_name');
+        if (savedName) {
+            input.value = savedName;
+        }
+
+        document.body.appendChild(input);
+
+        // Auto-focus the input
+        setTimeout(() => input.focus(), 100);
+
+        // Handle Enter key
+        input.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.saveScoreWithName();
+            }
+        });
+    }
+
+    saveScoreWithName(): void {
+        const input = document.getElementById('player-name-input') as HTMLInputElement;
+        if (!input) return;
+
+        const playerName = input.value.trim() || 'Spieler';
+
+        // Save name to localStorage for future use
+        localStorage.setItem('typerspace_player_name', playerName);
+
+        // Add name to entry and save
+        this.unsavedEntry.playerName = playerName;
+        highscoreService.saveScore(this.unsavedEntry);
+
+        // Remove input field
+        input.remove();
+
+        // Show confirmation message
+        const confirmStyle = {
+            font: '24px Courier New',
+            fill: '#00ff00',
+            fontWeight: 'bold'
+        };
+        const confirmText = this.game.add.text(
+            this.game.width / 2,
+            this.game.height / 2,
+            `✓ Score gespeichert als "${playerName}"`,
+            confirmStyle
+        );
+        confirmText.anchor.setTo(0.5);
+        confirmText.alpha = 0;
+
+        // Fade in and out animation
+        const fadeIn = this.game.add.tween(confirmText);
+        fadeIn.to({ alpha: 1 }, 500, Phaser.Easing.Quadratic.Out, true);
+        fadeIn.onComplete.add(() => {
+            const fadeOut = this.game.add.tween(confirmText);
+            fadeOut.to({ alpha: 0 }, 500, Phaser.Easing.Quadratic.In, true, 1500);
+        });
+    }
+
+    shutdown(): void {
+        // Clean up input field when leaving scene
+        const input = document.getElementById('player-name-input');
+        if (input) {
+            input.remove();
+        }
+    }
+
     createButtons(): void {
         const buttonStyle = {
             font: '28px Courier New',
@@ -211,7 +331,10 @@ export class ResultsScene extends Phaser.State {
         restartBtn.inputEnabled = true;
         restartBtn.input.useHandCursor = true;
         restartBtn.events.onInputDown.add(() => {
-            this.game.state.start('Level1Scene', true, false, this.difficulty);
+            this.saveScoreWithName();
+            setTimeout(() => {
+                this.game.state.start('Level1Scene', true, false, this.difficulty);
+            }, 100);
         }, this);
 
         // Add hover effect
@@ -233,7 +356,10 @@ export class ResultsScene extends Phaser.State {
         leaderboardBtn.inputEnabled = true;
         leaderboardBtn.input.useHandCursor = true;
         leaderboardBtn.events.onInputDown.add(() => {
-            this.game.state.start('LeaderboardScene', true, false, { selectedDifficulty: this.difficulty });
+            this.saveScoreWithName();
+            setTimeout(() => {
+                this.game.state.start('LeaderboardScene', true, false, { selectedDifficulty: this.difficulty });
+            }, 100);
         }, this);
 
         // Add hover effect
@@ -255,7 +381,10 @@ export class ResultsScene extends Phaser.State {
         menuBtn.inputEnabled = true;
         menuBtn.input.useHandCursor = true;
         menuBtn.events.onInputDown.add(() => {
-            this.game.state.start('MenuScene');
+            this.saveScoreWithName();
+            setTimeout(() => {
+                this.game.state.start('MenuScene');
+            }, 100);
         }, this);
 
         // Add hover effect

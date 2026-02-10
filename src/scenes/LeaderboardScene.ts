@@ -141,12 +141,13 @@ export class LeaderboardScene extends Phaser.State {
         };
 
         const headers = [
-            { text: '#', x: 120 },
-            { text: 'SCORE', x: 280 },
-            { text: 'ACC', x: 450 },
-            { text: 'WPM', x: 600 },
-            { text: 'ZEIT', x: 750 },
-            { text: 'PROFI', x: 900 }
+            { text: '#', x: 100 },
+            { text: 'NAME', x: 220 },
+            { text: 'SCORE', x: 380 },
+            { text: 'ACC', x: 540 },
+            { text: 'WPM', x: 680 },
+            { text: 'ZEIT', x: 820 },
+            { text: 'PROFI', x: 960 }
         ];
 
         headers.forEach(header => {
@@ -183,14 +184,20 @@ export class LeaderboardScene extends Phaser.State {
                 const yPos = 260 + (index * 35);
 
                 // Rank
-                const rank = this.game.add.text(120, yPos, `${index + 1}`, entryStyle);
+                const rank = this.game.add.text(100, yPos, `${index + 1}`, entryStyle);
                 rank.anchor.setTo(0.5);
                 this.scoreTexts.push(rank);
+
+                // Player Name
+                const playerName = entry.playerName || 'Spieler';
+                const name = this.game.add.text(220, yPos, playerName, entryStyle);
+                name.anchor.setTo(0.5);
+                this.scoreTexts.push(name);
 
                 // Score
                 const scoreColor = index < 3 ? '#FFD700' : '#ffffff';
                 const score = this.game.add.text(
-                    280,
+                    380,
                     yPos,
                     highscoreService.formatScore(entry.score),
                     { ...entryStyle, fill: scoreColor }
@@ -199,23 +206,23 @@ export class LeaderboardScene extends Phaser.State {
                 this.scoreTexts.push(score);
 
                 // Accuracy
-                const accuracy = this.game.add.text(450, yPos, `${entry.accuracy}%`, entryStyle);
+                const accuracy = this.game.add.text(540, yPos, `${entry.accuracy}%`, entryStyle);
                 accuracy.anchor.setTo(0.5);
                 this.scoreTexts.push(accuracy);
 
                 // WPM
-                const wpm = this.game.add.text(600, yPos, `${entry.wpm}`, entryStyle);
+                const wpm = this.game.add.text(680, yPos, `${entry.wpm}`, entryStyle);
                 wpm.anchor.setTo(0.5);
                 this.scoreTexts.push(wpm);
 
                 // Time
-                const time = this.game.add.text(750, yPos, `${entry.time.toFixed(1)}s`, entryStyle);
+                const time = this.game.add.text(820, yPos, `${entry.time.toFixed(1)}s`, entryStyle);
                 time.anchor.setTo(0.5);
                 this.scoreTexts.push(time);
 
                 // Pro mode indicator
                 const proMode = this.game.add.text(
-                    900,
+                    960,
                     yPos,
                     entry.proMode ? '⚡' : '-',
                     entryStyle

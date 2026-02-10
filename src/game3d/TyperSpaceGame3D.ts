@@ -462,7 +462,17 @@ export class TyperSpaceGame3D {
         this.asteroids = [];
         this.currentTarget = null;
 
-        const bossWords = ['schwarzesloch', 'supernova', 'gravitationswelle'];
+        // Get words from next difficulty level for boss fight
+        const nextWaveIndex = Math.min(this.currentWave + 1, GAME_CONFIG.waves.length - 1);
+        const bossWaveConfig = GAME_CONFIG.waves[nextWaveIndex];
+        const bossWordList = getWordsByDifficulty(bossWaveConfig.wordDifficulty);
+
+        // Select 3 random harder words for boss
+        const bossWords: string[] = [];
+        const shuffled = [...bossWordList].sort(() => Math.random() - 0.5);
+        for (let i = 0; i < 3 && i < shuffled.length; i++) {
+            bossWords.push(shuffled[i]);
+        }
 
         this.boss = new Boss(
             this.scene,
@@ -533,7 +543,7 @@ export class TyperSpaceGame3D {
         // Calculate total enemies from all waves
         const totalEnemies = GAME_CONFIG.waves.reduce((sum, wave) => sum + wave.wordsPerWave, 0);
 
-        // Calculate and save highscore
+        // Calculate score (but don't save yet - wait for name input)
         const entry = highscoreService.createEntry({
             correctKeystrokes: this.correctKeystrokes,
             totalKeystrokes: this.totalKeystrokes,
@@ -546,11 +556,15 @@ export class TyperSpaceGame3D {
             success: success
         });
 
+        // Temporarily save to check rank
         highscoreService.saveScore(entry);
 
         // Check if it's a new highscore
         const isNewHighscore = highscoreService.isNewHighscore(entry.score, this.speed as Difficulty);
         const highscoreRank = highscoreService.getLastSavedScoreRank(this.speed as Difficulty);
+
+        // Load saved name
+        const savedName = localStorage.getItem('typerspace_player_name') || '';
 
         // Build new highscore banner HTML
         const highscoreBanner = isNewHighscore && highscoreRank
@@ -578,6 +592,32 @@ export class TyperSpaceGame3D {
                     ⭐ SCORE: ${highscoreService.formatScore(entry.score)} ⭐
                 </div>
                 ${highscoreBanner}
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="font-size: 1.3rem; color: #00d4ff; font-weight: bold; display: block; margin-bottom: 0.5rem;">
+                        Dein Name für die Rangliste:
+                    </label>
+                    <input
+                        type="text"
+                        id="player-name-input-3d"
+                        placeholder="Spieler"
+                        maxlength="20"
+                        value="${savedName}"
+                        style="
+                            width: 300px;
+                            padding: 10px;
+                            font-size: 1.2rem;
+                            font-family: 'Courier New', monospace;
+                            text-align: center;
+                            background-color: #1a1e3a;
+                            color: #ffffff;
+                            border: 2px solid #00d4ff;
+                            border-radius: 5px;
+                            outline: none;
+                        "
+                        onfocus="this.style.borderColor='#00ff00'; this.style.boxShadow='0 0 10px rgba(0, 255, 0, 0.5)';"
+                        onblur="this.style.borderColor='#00d4ff'; this.style.boxShadow='none';"
+                    />
+                </div>
                 <div style="font-size: 1.3rem; color: #8892b0; margin-bottom: 0.5rem;">
                     <p>Schwierigkeit: ${this.speed.toUpperCase()} ${this.isProMode ? '⚡ Profi-Modus' : ''}</p>
                 </div>
@@ -587,7 +627,7 @@ export class TyperSpaceGame3D {
                     <p>Zeit: ${time.toFixed(1)}s</p>
                 </div>
                 <div style="display: flex; gap: 20px;">
-                    <button onclick="location.reload()" style="
+                    <button id="save-and-reload-btn" style="
                         padding: 15px 40px;
                         font-size: 1.3rem;
                         font-weight: bold;
@@ -603,6 +643,40 @@ export class TyperSpaceGame3D {
                 </div>
             </div>
         `;
+
+        // Add event listener for save button
+        const saveBtn = document.getElementById('save-and-reload-btn');
+        const nameInput = document.getElementById('player-name-input-3d') as HTMLInputElement;
+
+        if (saveBtn && nameInput) {
+            // Auto-focus the input
+            setTimeout(() => nameInput.focus(), 100);
+
+            // Handle Enter key
+            nameInput.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') {
+                    this.saveNameAndReload(entry, nameInput);
+                }
+            });
+
+            saveBtn.addEventListener('click', () => {
+                this.saveNameAndReload(entry, nameInput);
+            });
+        }
+    }
+
+    private saveNameAndReload(entry: any, nameInput: HTMLInputElement): void {
+        const playerName = nameInput.value.trim() || 'Spieler';
+
+        // Save name to localStorage
+        localStorage.setItem('typerspace_player_name', playerName);
+
+        // Add name to entry and save again
+        entry.playerName = playerName;
+        highscoreService.saveScore(entry);
+
+        // Reload page
+        location.reload();
     }
 
     private onWindowResize(): void {

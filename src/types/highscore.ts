@@ -10,6 +10,7 @@ export type GameMode = '2D' | '3D';
  */
 export interface HighscoreEntry {
     id: string;                    // Unique identifier (timestamp-based)
+    playerName?: string;           // Player name (optional for backwards compatibility)
     score: number;                 // Final calculated score
     accuracy: number;              // Accuracy percentage (0-100)
     wpm: number;                   // Words per minute
