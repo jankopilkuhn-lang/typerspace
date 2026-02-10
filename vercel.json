@@ -39,9 +39,5 @@
         }
       ]
     }
-  ],
-  "env": {
-    "UPSTASH_REDIS_REST_URL": "@upstash-redis-rest-url",
-    "UPSTASH_REDIS_REST_TOKEN": "@upstash-redis-rest-token"
-  }
+  ]
 }
