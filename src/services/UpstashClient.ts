@@ -4,17 +4,26 @@
  */
 
 export class UpstashClient {
-    private readonly proxyUrl: string = 'http://localhost:3001/api/redis';
+    private readonly proxyUrl: string;
     private readonly configured: boolean;
 
     constructor() {
+        // Determine proxy URL based on environment
+        // In production (Vercel), use relative API routes
+        // In development, use local proxy server
+        const isProduction = window.location.hostname !== 'localhost' && window.location.hostname !== '127.0.0.1';
+        this.proxyUrl = isProduction
+            ? '/api/redis'  // Vercel serverless functions
+            : 'http://localhost:3001/api/redis';  // Local proxy server
+
         // Check if Upstash is configured via environment variables
         this.configured = !!(process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN);
 
         if (!this.configured) {
             console.warn('Upstash credentials not found. Falling back to localStorage.');
         } else {
-            console.log('Upstash client configured (via proxy)');
+            console.log(`Upstash client configured (via ${isProduction ? 'Vercel' : 'local'} proxy)`);
+            console.log(`Proxy URL: ${this.proxyUrl}`);
         }
     }
 
