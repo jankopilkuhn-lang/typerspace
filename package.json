@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "scripts": {
     "dev": "webpack serve --mode development",
-    "build": "webpack --mode production && copy public\\index.html dist\\index.html",
+    "build": "webpack --mode production && copyfiles public/index.html dist",
     "start": "npm run dev"
   },
   "keywords": [
@@ -16,6 +16,7 @@
   "author": "",
   "license": "MIT",
   "devDependencies": {
+    "copyfiles": "^2.4.1",
     "css-loader": "^6.8.1",
     "file-loader": "^6.2.0",
     "phaser-ce": "^2.20.2",
