@@ -53,10 +53,9 @@ export class ResultsScene extends Phaser.State {
         this.score = entry.score;
         this.unsavedEntry = entry; // Store for later saving with name
 
-        // Check if it's a new highscore (temporarily save to check rank)
-        highscoreService.saveScore(entry);
+        // Check if it's a new highscore (without saving yet)
         this.isNewHighscore = highscoreService.isNewHighscore(this.score, this.difficulty as Difficulty);
-        this.highscoreRank = highscoreService.getLastSavedScoreRank(this.difficulty as Difficulty);
+        this.highscoreRank = highscoreService.getEntryRank(entry);
     }
 
     create(): void {
