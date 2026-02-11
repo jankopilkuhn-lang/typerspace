@@ -24,7 +24,7 @@ export class ResultsScene extends Phaser.State {
     private highscoreRank: number | null;
     private unsavedEntry: any; // Store entry before saving with name
 
-    init(data: any): void {
+    async init(data: any): Promise<void> {
         this.accuracy = data.accuracy || 0;
         this.wpm = data.wpm || 0;
         this.time = data.time || 0;
@@ -54,8 +54,8 @@ export class ResultsScene extends Phaser.State {
         this.unsavedEntry = entry; // Store for later saving with name
 
         // Check if it's a new highscore (without saving yet)
-        this.isNewHighscore = highscoreService.isNewHighscore(this.score, this.difficulty as Difficulty);
-        this.highscoreRank = highscoreService.getEntryRank(entry);
+        this.isNewHighscore = await highscoreService.isNewHighscore(this.score, this.difficulty as Difficulty);
+        this.highscoreRank = await highscoreService.getEntryRank(entry);
     }
 
     create(): void {
