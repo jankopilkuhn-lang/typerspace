@@ -73,8 +73,6 @@ export class LeaderboardScene extends Phaser.State {
         const totalTabs = 4;
         const startX = centerX - (tabSpacing * (totalTabs - 1)) / 2;
 
-        console.log('LeaderboardScene: game.width =', this.game.width, 'centerX =', centerX, 'tabs startX =', startX);
-
         const difficulties: { name: string; value: Difficulty; color: string; x: number }[] = [
             { name: 'Leicht', value: 'easy', color: '#00ff00', x: startX },
             { name: 'Mittel', value: 'medium', color: '#ffff00', x: startX + tabSpacing },
@@ -138,9 +136,7 @@ export class LeaderboardScene extends Phaser.State {
         this.scoreTexts.forEach(text => text.destroy());
         this.scoreTexts = [];
 
-        console.log('LeaderboardScene: Loading scores for difficulty:', this.selectedDifficulty);
         const scores = await highscoreService.getHighscores(this.selectedDifficulty, 10);
-        console.log('LeaderboardScene: Loaded scores:', scores.length, scores);
 
         // Header
         const headerStyle = {
@@ -153,8 +149,6 @@ export class LeaderboardScene extends Phaser.State {
         const centerX = this.game.width / 2;
         const tableWidth = 1000;
         const startX = centerX - tableWidth / 2;
-
-        console.log('LeaderboardScene: table centerX =', centerX, 'tableWidth =', tableWidth, 'startX =', startX);
 
         const headers = [
             { text: '#', x: startX + 50 },
