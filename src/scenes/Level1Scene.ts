@@ -95,11 +95,26 @@ export class Level1Scene extends Phaser.State {
         // Setup UI
         this.createUI();
 
+        // Load highscore asynchronously
+        this.loadHighscore();
+
         // Setup keyboard input
         this.game.input.keyboard.addCallbacks(this, null, null, this.onKeyPress);
 
         // Spawn first enemy
         this.spawnEnemy();
+    }
+
+    async loadHighscore(): Promise<void> {
+        // Wait for highscore service to initialize and get stats
+        const stats = await highscoreService.getStats();
+        const personalBest = stats.personalBest[this.speed as Difficulty];
+        const highscoreValue = personalBest ? highscoreService.formatScore(personalBest.score) : '-';
+
+        // Update highscore text if it exists
+        if (this.highscoreText) {
+            this.highscoreText.text = `Highscore: ${highscoreValue}`;
+        }
     }
 
     createStarfield(): void {

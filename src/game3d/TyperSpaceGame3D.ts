@@ -90,6 +90,9 @@ export class TyperSpaceGame3D {
         // Create UI
         this.createUI();
 
+        // Load highscore asynchronously
+        this.loadHighscore();
+
         // Handle window resize
         window.addEventListener('resize', () => this.onWindowResize());
 
@@ -101,6 +104,19 @@ export class TyperSpaceGame3D {
 
         // Start game loop
         this.animate();
+    }
+
+    private async loadHighscore(): Promise<void> {
+        // Wait for highscore service to initialize and get stats
+        const stats = await highscoreService.getStats();
+        const personalBest = stats.personalBest[this.speed as Difficulty];
+        const highscoreValue = personalBest ? highscoreService.formatScore(personalBest.score) : '-';
+
+        // Update highscore display
+        const highscoreElement = document.getElementById('highscore-value');
+        if (highscoreElement) {
+            highscoreElement.textContent = highscoreValue;
+        }
     }
 
     private setupLighting(): void {
