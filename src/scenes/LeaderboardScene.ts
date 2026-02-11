@@ -10,6 +10,7 @@ export class LeaderboardScene extends Phaser.State {
     private game: any;
     private selectedDifficulty: Difficulty = 'medium';
     private difficultyButtons: { [key in Difficulty]?: any } = {};
+    private difficultyUnderlines: { [key in Difficulty]?: any } = {};
     private scoreTexts: any[] = [];
     private statsTexts: any[] = [];
 
@@ -127,6 +128,7 @@ export class LeaderboardScene extends Phaser.State {
                 underline.lineStyle(3, parseInt(diff.color.replace('#', '0x')), 1);
                 underline.moveTo(button.x - 50, button.y + 20);
                 underline.lineTo(button.x + 50, button.y + 20);
+                this.difficultyUnderlines[diff.value] = underline;
             }
         });
     }
@@ -317,20 +319,39 @@ export class LeaderboardScene extends Phaser.State {
     async refreshLeaderboard(): Promise<void> {
         // Update difficulty tab styling
         const difficulties: Difficulty[] = ['easy', 'medium', 'hard', 'ultra'];
+        const difficultyColors = {
+            easy: '#00ff00',
+            medium: '#ffff00',
+            hard: '#ff9900',
+            ultra: '#ff0000'
+        };
+
         difficulties.forEach(diff => {
             const button = this.difficultyButtons[diff];
             if (button) {
                 const isSelected = diff === this.selectedDifficulty;
                 button.fontSize = isSelected ? 28 : 24;
                 button.fontWeight = isSelected ? 'bold' : 'normal';
+
+                // Destroy old underline
+                if (this.difficultyUnderlines[diff]) {
+                    this.difficultyUnderlines[diff].destroy();
+                    delete this.difficultyUnderlines[diff];
+                }
+
+                // Create new underline for selected tab
+                if (isSelected) {
+                    const underline = this.game.add.graphics(0, 0);
+                    underline.lineStyle(3, parseInt(difficultyColors[diff].replace('#', '0x')), 1);
+                    underline.moveTo(button.x - 50, button.y + 20);
+                    underline.lineTo(button.x + 50, button.y + 20);
+                    this.difficultyUnderlines[diff] = underline;
+                }
             }
         });
 
         // Re-render leaderboard and stats
         await this.renderLeaderboard();
         await this.renderPersonalStats();
-
-        // Re-draw underlines (simple approach: full refresh would be better in production)
-        // For now, the tabs are functional without animated underlines
     }
 }
