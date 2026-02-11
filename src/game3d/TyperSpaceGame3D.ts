@@ -164,8 +164,8 @@ export class TyperSpaceGame3D {
         this.uiContainer.style.pointerEvents = 'none';
         this.uiContainer.style.zIndex = '1000';
 
-        // Get personal best highscore
-        const stats = highscoreService.getStats();
+        // Get personal best highscore (sync - may be empty initially)
+        const stats = highscoreService.getStatsSync();
         const personalBest = stats.personalBest[this.speed as Difficulty];
         const highscoreValue = personalBest ? highscoreService.formatScore(personalBest.score) : '-';
 

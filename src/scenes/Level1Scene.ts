@@ -317,8 +317,8 @@ export class Level1Scene extends Phaser.State {
         this.scoreText = this.game.add.text(10, 10, `Welle ${this.currentWave + 1}: 0/${waveConfig.wordsPerWave}`, style);
         this.healthText = this.game.add.text(10, 40, `Leben: ${this.health}`, style);
 
-        // Highscore display
-        const stats = highscoreService.getStats();
+        // Highscore display (sync - may be empty initially)
+        const stats = highscoreService.getStatsSync();
         const personalBest = stats.personalBest[this.speed as Difficulty];
         const highscoreValue = personalBest ? highscoreService.formatScore(personalBest.score) : '-';
         this.highscoreText = this.game.add.text(10, 70, `Highscore: ${highscoreValue}`, {

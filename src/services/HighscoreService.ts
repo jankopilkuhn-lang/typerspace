@@ -218,7 +218,7 @@ export class HighscoreService {
     }
 
     /**
-     * Get top N highscores for a difficulty
+     * Get top N highscores for a difficulty (async - waits for initialization)
      */
     public async getHighscores(difficulty: Difficulty, limit: number = 10): Promise<HighscoreEntry[]> {
         // Wait for initialization to complete
@@ -230,10 +230,20 @@ export class HighscoreService {
     }
 
     /**
+     * Get top N highscores for a difficulty (sync - returns cached data immediately)
+     * Use this only when you need immediate access and can handle empty results
+     */
+    public getHighscoresSync(difficulty: Difficulty, limit: number = 10): HighscoreEntry[] {
+        const data = this.cache || this.createEmptyData();
+        const entries = data.entries[difficulty] || [];
+        return entries.slice(0, limit);
+    }
+
+    /**
      * Check if a score qualifies as a new highscore (top 10)
      */
-    public isNewHighscore(score: number, difficulty: Difficulty): boolean {
-        const topScores = this.getHighscores(difficulty, 10);
+    public async isNewHighscore(score: number, difficulty: Difficulty): Promise<boolean> {
+        const topScores = await this.getHighscores(difficulty, 10);
 
         // If less than 10 entries, it's automatically a highscore
         if (topScores.length < 10) {
@@ -247,8 +257,8 @@ export class HighscoreService {
     /**
      * Get the rank of a specific score (without saving)
      */
-    public getScoreRank(score: number, difficulty: Difficulty): number {
-        const topScores = this.getHighscores(difficulty, this.MAX_ENTRIES_PER_DIFFICULTY);
+    public async getScoreRank(score: number, difficulty: Difficulty): Promise<number> {
+        const topScores = await this.getHighscores(difficulty, this.MAX_ENTRIES_PER_DIFFICULTY);
 
         // Find position where this score would be inserted
         let rank = 1;
@@ -266,19 +276,19 @@ export class HighscoreService {
      * Get the rank of a specific entry (without saving)
      * This checks the rank based on score only
      */
-    public getEntryRank(entry: HighscoreEntry): number {
-        return this.getScoreRank(entry.score, entry.difficulty);
+    public async getEntryRank(entry: HighscoreEntry): Promise<number> {
+        return await this.getScoreRank(entry.score, entry.difficulty);
     }
 
     /**
      * Get the rank of the last saved score (from current session)
      */
-    public getLastSavedScoreRank(difficulty: Difficulty): number | null {
+    public async getLastSavedScoreRank(difficulty: Difficulty): Promise<number | null> {
         if (!this.lastSavedScoreId) {
             return null;
         }
 
-        const topScores = this.getHighscores(difficulty, this.MAX_ENTRIES_PER_DIFFICULTY);
+        const topScores = await this.getHighscores(difficulty, this.MAX_ENTRIES_PER_DIFFICULTY);
         const index = topScores.findIndex(entry => entry.id === this.lastSavedScoreId);
 
         return index >= 0 ? index + 1 : null;
@@ -291,6 +301,49 @@ export class HighscoreService {
         // Wait for initialization to complete
         await this.waitForInit();
 
+        const data = this.cache || this.createEmptyData();
+
+        // Collect all entries from all difficulties
+        const allEntries: HighscoreEntry[] = [
+            ...data.entries.easy,
+            ...data.entries.medium,
+            ...data.entries.hard,
+            ...data.entries.ultra
+        ];
+
+        const totalGames = allEntries.length;
+        const successfulGames = allEntries.filter(e => e.success).length;
+
+        const averageAccuracy = totalGames > 0
+            ? allEntries.reduce((sum, e) => sum + e.accuracy, 0) / totalGames
+            : 0;
+
+        const averageWpm = totalGames > 0
+            ? allEntries.reduce((sum, e) => sum + e.wpm, 0) / totalGames
+            : 0;
+
+        // Get personal best for each difficulty
+        const personalBest: { [key in Difficulty]: HighscoreEntry | null } = {
+            easy: data.entries.easy[0] || null,
+            medium: data.entries.medium[0] || null,
+            hard: data.entries.hard[0] || null,
+            ultra: data.entries.ultra[0] || null
+        };
+
+        return {
+            totalGames,
+            successfulGames,
+            averageAccuracy: Math.round(averageAccuracy),
+            averageWpm: Math.round(averageWpm),
+            personalBest
+        };
+    }
+
+    /**
+     * Get personal statistics across all games (sync - returns cached data immediately)
+     * Use this only when you need immediate access and can handle empty results
+     */
+    public getStatsSync(): HighscoreStats {
         const data = this.cache || this.createEmptyData();
 
         // Collect all entries from all difficulties

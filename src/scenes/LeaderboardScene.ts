@@ -194,20 +194,20 @@ export class LeaderboardScene extends Phaser.State {
                 const yPos = 260 + (index * 35);
 
                 // Rank
-                const rank = this.game.add.text(100, yPos, `${index + 1}`, entryStyle);
+                const rank = this.game.add.text(startX + 50, yPos, `${index + 1}`, entryStyle);
                 rank.anchor.setTo(0.5);
                 this.scoreTexts.push(rank);
 
                 // Player Name
                 const playerName = entry.playerName || 'Spieler';
-                const name = this.game.add.text(220, yPos, playerName, entryStyle);
+                const name = this.game.add.text(startX + 170, yPos, playerName, entryStyle);
                 name.anchor.setTo(0.5);
                 this.scoreTexts.push(name);
 
                 // Score
                 const scoreColor = index < 3 ? '#FFD700' : '#ffffff';
                 const score = this.game.add.text(
-                    380,
+                    startX + 330,
                     yPos,
                     highscoreService.formatScore(entry.score),
                     { ...entryStyle, fill: scoreColor }
@@ -216,23 +216,23 @@ export class LeaderboardScene extends Phaser.State {
                 this.scoreTexts.push(score);
 
                 // Accuracy
-                const accuracy = this.game.add.text(540, yPos, `${entry.accuracy}%`, entryStyle);
+                const accuracy = this.game.add.text(startX + 490, yPos, `${entry.accuracy}%`, entryStyle);
                 accuracy.anchor.setTo(0.5);
                 this.scoreTexts.push(accuracy);
 
                 // WPM
-                const wpm = this.game.add.text(680, yPos, `${entry.wpm}`, entryStyle);
+                const wpm = this.game.add.text(startX + 630, yPos, `${entry.wpm}`, entryStyle);
                 wpm.anchor.setTo(0.5);
                 this.scoreTexts.push(wpm);
 
                 // Time
-                const time = this.game.add.text(820, yPos, `${entry.time.toFixed(1)}s`, entryStyle);
+                const time = this.game.add.text(startX + 770, yPos, `${entry.time.toFixed(1)}s`, entryStyle);
                 time.anchor.setTo(0.5);
                 this.scoreTexts.push(time);
 
                 // Pro mode indicator
                 const proMode = this.game.add.text(
-                    960,
+                    startX + 850,
                     yPos,
                     entry.proMode ? '⚡' : '-',
                     entryStyle
