@@ -147,12 +147,61 @@ const setupButtons = (): void => {
     }
 };
 
+// Check if we should auto-navigate to leaderboard (from 3D mode)
+const checkLeaderboardNavigation = (): void => {
+    const shouldNavigate = localStorage.getItem('typerspace_navigate_to_leaderboard');
+    if (shouldNavigate === 'true') {
+        // Clear flag
+        localStorage.removeItem('typerspace_navigate_to_leaderboard');
+
+        // Auto-start game in retro mode and go to leaderboard
+        console.log('Auto-navigating to leaderboard from 3D mode');
+
+        // Hide start screen
+        const startScreen = document.getElementById('start-screen');
+        const gameContainer = document.getElementById('game-container');
+
+        if (startScreen) {
+            startScreen.style.display = 'none';
+        }
+        if (gameContainer) {
+            gameContainer.classList.add('active');
+            gameContainer.style.display = 'block';
+        }
+
+        // Initialize Phaser
+        const config: any = {
+            width: 1200,
+            height: 800,
+            renderer: Phaser.AUTO,
+            parent: 'game-container',
+            transparent: false,
+            antialias: true
+        };
+
+        const game = new Phaser.Game(config);
+
+        // Add all scenes
+        game.state.add('MenuScene', MenuScene);
+        game.state.add('Level1Scene', Level1Scene);
+        game.state.add('ResultsScene', ResultsScene);
+        game.state.add('LeaderboardScene', LeaderboardScene);
+
+        // Start directly at leaderboard
+        game.state.start('LeaderboardScene');
+    }
+};
+
 // Wait for everything to load
 if (document.readyState === 'loading') {
     console.log('Waiting for DOMContentLoaded...');
-    document.addEventListener('DOMContentLoaded', setupButtons);
+    document.addEventListener('DOMContentLoaded', () => {
+        checkLeaderboardNavigation();
+        setupButtons();
+    });
 } else {
     console.log('DOM already loaded, setting up buttons immediately');
+    checkLeaderboardNavigation();
     setupButtons();
 }
 

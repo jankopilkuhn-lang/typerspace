@@ -632,7 +632,40 @@ export class TyperSpaceGame3D {
                     <p>Tippgeschwindigkeit: ${wpm} WPM</p>
                     <p>Zeit: ${time.toFixed(1)}s</p>
                 </div>
+                <div style="margin-bottom: 1rem;">
+                    <button id="save-score-btn-3d" style="
+                        padding: 12px 30px;
+                        font-size: 1.2rem;
+                        font-weight: bold;
+                        color: #000;
+                        background-color: #00ff00;
+                        border: none;
+                        border-radius: 5px;
+                        cursor: pointer;
+                        font-family: 'Courier New', monospace;
+                        transition: all 0.2s;
+                    "
+                    onmouseover="this.style.boxShadow='0 0 15px rgba(0, 255, 0, 0.8)'; this.style.transform='scale(1.05)';"
+                    onmouseout="this.style.boxShadow='none'; this.style.transform='scale(1)';">
+                        ✓ Speichern
+                    </button>
+                </div>
                 <div style="display: flex; gap: 20px;">
+                    <button id="view-leaderboard-btn" style="
+                        padding: 15px 40px;
+                        font-size: 1.3rem;
+                        font-weight: bold;
+                        color: #FFD700;
+                        background: linear-gradient(135deg, #1a1e3a 0%, #2d3561 100%);
+                        border: 2px solid #FFD700;
+                        border-radius: 50px;
+                        cursor: pointer;
+                        font-family: 'Courier New', monospace;
+                    "
+                    onmouseover="this.style.boxShadow='0 0 15px rgba(255, 215, 0, 0.8)';"
+                    onmouseout="this.style.boxShadow='none';">
+                        🏆 Rangliste
+                    </button>
                     <button id="save-and-reload-btn" style="
                         padding: 15px 40px;
                         font-size: 1.3rem;
@@ -643,32 +676,91 @@ export class TyperSpaceGame3D {
                         border-radius: 50px;
                         cursor: pointer;
                         font-family: 'Courier New', monospace;
-                    ">
+                    "
+                    onmouseover="this.style.boxShadow='0 0 15px rgba(0, 212, 255, 0.8)';"
+                    onmouseout="this.style.boxShadow='none';">
                         🏠 Zurück zum Menü
                     </button>
                 </div>
             </div>
         `;
 
-        // Add event listener for save button
-        const saveBtn = document.getElementById('save-and-reload-btn');
+        // Add event listeners for buttons
+        const saveScoreBtn = document.getElementById('save-score-btn-3d');
+        const leaderboardBtn = document.getElementById('view-leaderboard-btn');
+        const menuBtn = document.getElementById('save-and-reload-btn');
         const nameInput = document.getElementById('player-name-input-3d') as HTMLInputElement;
 
-        if (saveBtn && nameInput) {
+        if (nameInput) {
             // Auto-focus the input
             setTimeout(() => nameInput.focus(), 100);
 
-            // Handle Enter key
+            // Handle Enter key - save score
             nameInput.addEventListener('keypress', (e) => {
                 if (e.key === 'Enter') {
-                    this.saveNameAndReload(entry, nameInput);
+                    this.saveScoreOnly(entry, nameInput);
                 }
             });
+        }
 
-            saveBtn.addEventListener('click', () => {
+        // Save button - just saves without navigation
+        if (saveScoreBtn && nameInput) {
+            saveScoreBtn.addEventListener('click', () => {
+                this.saveScoreOnly(entry, nameInput);
+            });
+        }
+
+        // Leaderboard button - save and go to leaderboard
+        if (leaderboardBtn && nameInput) {
+            leaderboardBtn.addEventListener('click', () => {
+                this.saveNameAndGoToLeaderboard(entry, nameInput);
+            });
+        }
+
+        // Menu button - save and reload
+        if (menuBtn && nameInput) {
+            menuBtn.addEventListener('click', () => {
                 this.saveNameAndReload(entry, nameInput);
             });
         }
+    }
+
+    private saveScoreOnly(entry: any, nameInput: HTMLInputElement): void {
+        const playerName = nameInput.value.trim() || 'Spieler';
+
+        // Save name to localStorage
+        localStorage.setItem('typerspace_player_name', playerName);
+
+        // Add name to entry and save again
+        entry.playerName = playerName;
+        highscoreService.saveScore(entry);
+
+        // Show confirmation message
+        const saveBtn = document.getElementById('save-score-btn-3d');
+        if (saveBtn) {
+            saveBtn.textContent = '✓ Gespeichert!';
+            saveBtn.style.backgroundColor = '#00cc00';
+            setTimeout(() => {
+                saveBtn.textContent = '✓ Speichern';
+                saveBtn.style.backgroundColor = '#00ff00';
+            }, 2000);
+        }
+    }
+
+    private saveNameAndGoToLeaderboard(entry: any, nameInput: HTMLInputElement): void {
+        const playerName = nameInput.value.trim() || 'Spieler';
+
+        // Save name to localStorage
+        localStorage.setItem('typerspace_player_name', playerName);
+
+        // Add name to entry and save again
+        entry.playerName = playerName;
+        highscoreService.saveScore(entry);
+
+        // Navigate to start screen with Phaser mode enabled to show leaderboard
+        // We'll use a URL parameter to indicate we want to go to leaderboard
+        localStorage.setItem('typerspace_navigate_to_leaderboard', 'true');
+        location.reload();
     }
 
     private saveNameAndReload(entry: any, nameInput: HTMLInputElement): void {
