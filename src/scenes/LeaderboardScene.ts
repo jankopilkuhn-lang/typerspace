@@ -249,40 +249,7 @@ export class LeaderboardScene extends Phaser.State {
         // Clear previous stats texts
         this.statsTexts.forEach(text => text.destroy());
         this.statsTexts = [];
-
-        const stats = await highscoreService.getStats();
-
-        const statsStyle = {
-            font: '22px Courier New',
-            fill: '#8892b0',
-            fontWeight: 'normal'
-        };
-
-        const statsY = 680;
-        const spacing = 30;
-
-        // Personal best for this difficulty
-        const personalBest = stats.personalBest[this.selectedDifficulty];
-        const bestScoreText = personalBest
-            ? `Persönliche Bestleistung: ${highscoreService.formatScore(personalBest.score)}`
-            : 'Persönliche Bestleistung: -';
-
-        const statsLines = [
-            bestScoreText,
-            `Gespielte Spiele: ${stats.totalGames}`,
-            `Erfolgsrate: ${stats.totalGames > 0 ? Math.round((stats.successfulGames / stats.totalGames) * 100) : 0}%`
-        ];
-
-        statsLines.forEach((line, index) => {
-            const text = this.game.add.text(
-                this.game.width / 2,
-                statsY + (index * spacing),
-                line,
-                statsStyle
-            );
-            text.anchor.setTo(0.5);
-            this.statsTexts.push(text);
-        });
+        // Personal stats removed per user request
     }
 
     createBackButton(): void {

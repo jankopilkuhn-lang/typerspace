@@ -22,6 +22,7 @@ export class Level1Scene extends Phaser.State {
     private totalKeystrokes: number = 0;
     private correctKeystrokes: number = 0;
     private startTime: number = 0;
+    private currentScore: number = 0;
 
     // Wave system
     private currentWave: number = 0;
@@ -46,6 +47,9 @@ export class Level1Scene extends Phaser.State {
     // Word list
     private wordList: string[];
     private usedWords: string[] = [];
+
+    // Score tracking
+    private scoreSaved: boolean = false;
 
     init(speed?: string, isProMode?: boolean): void {
         if (speed) {
@@ -95,9 +99,6 @@ export class Level1Scene extends Phaser.State {
         // Setup UI
         this.createUI();
 
-        // Load highscore asynchronously
-        this.loadHighscore();
-
         // Setup keyboard input
         this.game.input.keyboard.addCallbacks(this, null, null, this.onKeyPress);
 
@@ -105,15 +106,28 @@ export class Level1Scene extends Phaser.State {
         this.spawnEnemy();
     }
 
-    async loadHighscore(): Promise<void> {
-        // Wait for highscore service to initialize and get stats
-        const stats = await highscoreService.getStats();
-        const personalBest = stats.personalBest[this.speed as Difficulty];
-        const highscoreValue = personalBest ? highscoreService.formatScore(personalBest.score) : '-';
+    calculateCurrentScore(): void {
+        // Calculate current score using the same formula as the highscore service
+        const currentTime = (Date.now() - this.startTime) / 1000;
+        const totalEnemies = GAME_CONFIG.waves.reduce((sum, wave) => sum + wave.wordsPerWave, 0);
 
-        // Update highscore text if it exists
+        const score = highscoreService.calculateScore({
+            correctKeystrokes: this.correctKeystrokes,
+            totalKeystrokes: this.totalKeystrokes,
+            enemiesDefeated: this.enemiesDefeated,
+            totalEnemies: totalEnemies,
+            time: currentTime,
+            difficulty: this.speed as Difficulty,
+            proMode: this.isProMode,
+            mode: '2D',
+            success: false // Will be updated at the end
+        });
+
+        this.currentScore = score;
+
+        // Update score display
         if (this.highscoreText) {
-            this.highscoreText.text = `Highscore: ${highscoreValue}`;
+            this.highscoreText.text = `Score: ${highscoreService.formatScore(score)}`;
         }
     }
 
@@ -332,11 +346,8 @@ export class Level1Scene extends Phaser.State {
         this.scoreText = this.game.add.text(10, 10, `Welle ${this.currentWave + 1}: 0/${waveConfig.wordsPerWave}`, style);
         this.healthText = this.game.add.text(10, 40, `Leben: ${this.health}`, style);
 
-        // Highscore display (sync - may be empty initially)
-        const stats = highscoreService.getStatsSync();
-        const personalBest = stats.personalBest[this.speed as Difficulty];
-        const highscoreValue = personalBest ? highscoreService.formatScore(personalBest.score) : '-';
-        this.highscoreText = this.game.add.text(10, 70, `Highscore: ${highscoreValue}`, {
+        // Current score display
+        this.highscoreText = this.game.add.text(10, 70, `Score: 0`, {
             font: '20px Courier New',
             fill: '#FFD700',
             fontWeight: 'bold'
@@ -658,6 +669,9 @@ export class Level1Scene extends Phaser.State {
             const scalePulse = Math.sin(time * scaleSpeed) * scaleAmount;
             this.player.scale.setTo(1.0 + scalePulse, 1.0 + scalePulse);
         }
+
+        // Update current score display
+        this.calculateCurrentScore();
     }
 
     waveComplete(): void {
@@ -759,29 +773,14 @@ export class Level1Scene extends Phaser.State {
 
         const wpm = Math.round((this.correctKeystrokes / 5) / (totalTime / 60));
 
-        // Calculate total enemies from all waves
-        const totalEnemies = GAME_CONFIG.waves.reduce((sum, wave) => sum + wave.wordsPerWave, 0);
-
         // Play level complete sound
         audioManager.playLevelCompleteSound();
 
         // Stop gameplay music
         audioManager.stopBackgroundMusic();
 
-        // Go to results scene
-        this.game.state.start('ResultsScene', true, false, {
-            accuracy: accuracy,
-            wpm: wpm,
-            time: totalTime,
-            difficulty: this.speed,
-            success: true,
-            proMode: this.isProMode,
-            enemiesDefeated: this.enemiesDefeated,
-            totalEnemies: totalEnemies,
-            correctKeystrokes: this.correctKeystrokes,
-            totalKeystrokes: this.totalKeystrokes,
-            mode: '2D'
-        });
+        // Show results screen
+        this.showResults(accuracy, wpm, totalTime, true);
     }
 
     gameOver(): void {
@@ -794,28 +793,259 @@ export class Level1Scene extends Phaser.State {
 
         const wpm = Math.round((this.correctKeystrokes / 5) / (totalTime / 60));
 
-        // Calculate total enemies from all waves
-        const totalEnemies = GAME_CONFIG.waves.reduce((sum, wave) => sum + wave.wordsPerWave, 0);
-
         // Play game over sound
         audioManager.playGameOverSound();
 
         // Stop gameplay music
         audioManager.stopBackgroundMusic();
 
-        // Go to results scene
-        this.game.state.start('ResultsScene', true, false, {
-            accuracy: accuracy,
-            wpm: wpm,
-            time: totalTime,
-            difficulty: this.speed,
-            success: false,
-            proMode: this.isProMode,
-            enemiesDefeated: this.enemiesDefeated,
-            totalEnemies: totalEnemies,
+        // Show results screen
+        this.showResults(accuracy, wpm, totalTime, false);
+    }
+
+    private showResults(accuracy: number, wpm: number, time: number, success: boolean): void {
+        // Calculate total enemies from all waves
+        const totalEnemies = GAME_CONFIG.waves.reduce((sum, wave) => sum + wave.wordsPerWave, 0);
+
+        // Calculate score (but don't save yet - wait for name input)
+        const entry = highscoreService.createEntry({
             correctKeystrokes: this.correctKeystrokes,
             totalKeystrokes: this.totalKeystrokes,
-            mode: '2D'
+            enemiesDefeated: this.enemiesDefeated,
+            totalEnemies: totalEnemies,
+            time: time,
+            difficulty: this.speed as Difficulty,
+            proMode: this.isProMode,
+            mode: '2D',
+            success: success
         });
+
+        // Check if it's a new highscore (without saving yet)
+        const isNewHighscore = highscoreService.isNewHighscore(entry.score, this.speed as Difficulty);
+        const highscoreRank = highscoreService.getEntryRank(entry);
+
+        // Load saved name
+        const savedName = localStorage.getItem('typerspace_player_name') || '';
+
+        // Build new highscore banner HTML
+        const highscoreBanner = isNewHighscore && highscoreRank
+            ? `<div style="font-size: 2rem; color: #00ff00; margin-bottom: 1.5rem; font-weight: bold;">
+                   🏆 NEUER HIGHSCORE! #${highscoreRank} 🏆
+               </div>`
+            : '';
+
+        // Get the game container and replace with results HTML
+        const gameCanvas = document.getElementById('game-container');
+        if (gameCanvas) {
+            gameCanvas.innerHTML = `
+                <div style="
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    height: 100vh;
+                    color: white;
+                    text-align: center;
+                    font-family: 'Courier New', monospace;
+                    background: linear-gradient(135deg, #0a0e27 0%, #1a1a2e 50%, #16213e 100%);
+                ">
+                    <h1 style="font-size: 4rem; color: ${success ? '#00ff00' : '#ff0000'}; margin-bottom: 1rem;">
+                        ${success ? '🎉 Sieg!' : '💥 Game Over'}
+                    </h1>
+                    <div style="font-size: 2.5rem; color: #FFD700; margin-bottom: 1rem; font-weight: bold;">
+                        ⭐ SCORE: ${highscoreService.formatScore(entry.score)} ⭐
+                    </div>
+                    ${highscoreBanner}
+                    <div style="margin-bottom: 1.5rem;">
+                        <label style="font-size: 1.3rem; color: #00d4ff; font-weight: bold; display: block; margin-bottom: 0.5rem;">
+                            Dein Name für die Rangliste:
+                        </label>
+                        <input
+                            type="text"
+                            id="player-name-input-2d"
+                            placeholder="Spieler"
+                            maxlength="20"
+                            value="${savedName}"
+                            style="
+                                width: 300px;
+                                padding: 10px;
+                                font-size: 1.2rem;
+                                font-family: 'Courier New', monospace;
+                                text-align: center;
+                                background-color: #1a1e3a;
+                                color: #ffffff;
+                                border: 2px solid #00d4ff;
+                                border-radius: 5px;
+                                outline: none;
+                            "
+                            onfocus="this.style.borderColor='#00ff00'; this.style.boxShadow='0 0 10px rgba(0, 255, 0, 0.5)';"
+                            onblur="this.style.borderColor='#00d4ff'; this.style.boxShadow='none';"
+                        />
+                    </div>
+                    <div style="font-size: 1.3rem; color: #8892b0; margin-bottom: 0.5rem;">
+                        <p>Schwierigkeit: ${this.speed.toUpperCase()} ${this.isProMode ? '⚡ Profi-Modus' : ''}</p>
+                    </div>
+                    <div style="font-size: 1.5rem; color: #8892b0; margin-bottom: 2rem;">
+                        <p>Genauigkeit: ${accuracy}%</p>
+                        <p>Tippgeschwindigkeit: ${wpm} WPM</p>
+                        <p>Zeit: ${time.toFixed(1)}s</p>
+                    </div>
+                    <div style="margin-bottom: 1rem;">
+                        <button id="save-score-btn-2d" style="
+                            padding: 12px 30px;
+                            font-size: 1.2rem;
+                            font-weight: bold;
+                            color: #000;
+                            background-color: #00ff00;
+                            border: none;
+                            border-radius: 5px;
+                            cursor: pointer;
+                            font-family: 'Courier New', monospace;
+                            transition: all 0.2s;
+                        "
+                        onmouseover="this.style.boxShadow='0 0 15px rgba(0, 255, 0, 0.8)'; this.style.transform='scale(1.05)';"
+                        onmouseout="this.style.boxShadow='none'; this.style.transform='scale(1)';">
+                            ✓ Speichern
+                        </button>
+                    </div>
+                    <div style="display: flex; gap: 20px;">
+                        <button id="view-leaderboard-btn-2d" style="
+                            padding: 15px 40px;
+                            font-size: 1.3rem;
+                            font-weight: bold;
+                            color: #FFD700;
+                            background: linear-gradient(135deg, #1a1e3a 0%, #2d3561 100%);
+                            border: 2px solid #FFD700;
+                            border-radius: 50px;
+                            cursor: pointer;
+                            font-family: 'Courier New', monospace;
+                        "
+                        onmouseover="this.style.boxShadow='0 0 15px rgba(255, 215, 0, 0.8)';"
+                        onmouseout="this.style.boxShadow='none';">
+                            🏆 Rangliste
+                        </button>
+                        <button id="save-and-reload-btn-2d" style="
+                            padding: 15px 40px;
+                            font-size: 1.3rem;
+                            font-weight: bold;
+                            color: #fff;
+                            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                            border: 2px solid #00d4ff;
+                            border-radius: 50px;
+                            cursor: pointer;
+                            font-family: 'Courier New', monospace;
+                        "
+                        onmouseover="this.style.boxShadow='0 0 15px rgba(0, 212, 255, 0.8)';"
+                        onmouseout="this.style.boxShadow='none';">
+                            🏠 Zurück zum Menü
+                        </button>
+                    </div>
+                </div>
+            `;
+
+            // Add event listeners for buttons
+            const saveScoreBtn = document.getElementById('save-score-btn-2d');
+            const leaderboardBtn = document.getElementById('view-leaderboard-btn-2d');
+            const menuBtn = document.getElementById('save-and-reload-btn-2d');
+            const nameInput = document.getElementById('player-name-input-2d') as HTMLInputElement;
+
+            if (nameInput) {
+                // Auto-focus the input
+                setTimeout(() => nameInput.focus(), 100);
+
+                // Handle Enter key - save score
+                nameInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        this.saveScoreOnly(entry, nameInput);
+                    }
+                });
+            }
+
+            // Save button - just saves without navigation
+            if (saveScoreBtn && nameInput) {
+                saveScoreBtn.addEventListener('click', () => {
+                    this.saveScoreOnly(entry, nameInput);
+                });
+            }
+
+            // Leaderboard button - save and go to leaderboard
+            if (leaderboardBtn && nameInput) {
+                leaderboardBtn.addEventListener('click', () => {
+                    this.saveNameAndGoToLeaderboard(entry, nameInput);
+                });
+            }
+
+            // Menu button - save and reload
+            if (menuBtn && nameInput) {
+                menuBtn.addEventListener('click', () => {
+                    this.saveNameAndReload(entry, nameInput);
+                });
+            }
+        }
+    }
+
+    private saveScoreOnly(entry: any, nameInput: HTMLInputElement): void {
+        // Check if already saved to prevent duplicate entries
+        if (this.scoreSaved) {
+            return;
+        }
+
+        const playerName = nameInput.value.trim() || 'Spieler';
+
+        // Save name to localStorage
+        localStorage.setItem('typerspace_player_name', playerName);
+
+        // Add name to entry and save
+        entry.playerName = playerName;
+        highscoreService.saveScore(entry);
+        this.scoreSaved = true;
+
+        // Show confirmation message
+        const saveBtn = document.getElementById('save-score-btn-2d');
+        if (saveBtn) {
+            saveBtn.textContent = '✓ Gespeichert!';
+            (saveBtn as HTMLButtonElement).style.backgroundColor = '#00cc00';
+            setTimeout(() => {
+                saveBtn.textContent = '✓ Speichern';
+                (saveBtn as HTMLButtonElement).style.backgroundColor = '#00ff00';
+            }, 2000);
+        }
+    }
+
+    private saveNameAndGoToLeaderboard(entry: any, nameInput: HTMLInputElement): void {
+        // Check if already saved to prevent duplicate entries
+        if (!this.scoreSaved) {
+            const playerName = nameInput.value.trim() || 'Spieler';
+
+            // Save name to localStorage
+            localStorage.setItem('typerspace_player_name', playerName);
+
+            // Add name to entry and save
+            entry.playerName = playerName;
+            highscoreService.saveScore(entry);
+            this.scoreSaved = true;
+        }
+
+        // Navigate to start screen with leaderboard flag
+        localStorage.setItem('typerspace_navigate_to_leaderboard', 'true');
+        location.reload();
+    }
+
+    private saveNameAndReload(entry: any, nameInput: HTMLInputElement): void {
+        // Check if already saved to prevent duplicate entries
+        if (!this.scoreSaved) {
+            const playerName = nameInput.value.trim() || 'Spieler';
+
+            // Save name to localStorage
+            localStorage.setItem('typerspace_player_name', playerName);
+
+            // Add name to entry and save
+            entry.playerName = playerName;
+            highscoreService.saveScore(entry);
+            this.scoreSaved = true;
+        }
+
+        // Reload to return to start screen
+        location.reload();
     }
 }
