@@ -3,8 +3,62 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TyperSpace - Weltraum Tippspiel</title>
+
+    <!-- SEO Meta Tags -->
+    <title>TyperSpace - Weltraum Tippspiel | Tippen lernen im Weltall</title>
+    <meta name="description" content="TyperSpace - Das ultimative Weltraum-Tippspiel! Verbessere deine Tippgeschwindigkeit und Genauigkeit in aufregenden 2D- und 3D-Weltraum-Szenarien. Mit 5 Schwierigkeitsstufen von Leicht bis Extrem. Kostenlos spielen!">
+    <meta name="keywords" content="Tippspiel, Tippen lernen, Schreibtrainer, Tastaturtraining, Weltraum-Spiel, TyperSpace, 10-Finger-System, Tippgeschwindigkeit, WPM, Typing Game, Browser-Spiel, Phaser, 3D-Spiel">
+    <meta name="author" content="TyperSpace">
+    <meta name="robots" content="index, follow">
+    <meta name="language" content="German">
+    <meta name="theme-color" content="#0a0e27">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://typerspace.com/">
+    <meta property="og:title" content="TyperSpace - Weltraum Tippspiel">
+    <meta property="og:description" content="Verbessere deine Tippgeschwindigkeit im Weltraum! 2D und 3D Modi, 5 Schwierigkeitsstufen, Highscore-System. Tippe dich durch den Weltraum!">
+    <meta property="og:locale" content="de_DE">
+    <meta property="og:site_name" content="TyperSpace">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://typerspace.com/">
+    <meta property="twitter:title" content="TyperSpace - Weltraum Tippspiel">
+    <meta property="twitter:description" content="Verbessere deine Tippgeschwindigkeit im Weltraum! 2D und 3D Modi, 5 Schwierigkeitsstufen, Highscore-System.">
+
+    <!-- Favicon -->
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚀</text></svg>">
+
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "TyperSpace",
+        "description": "Ein Weltraum-Tippspiel zum Verbessern der Tippgeschwindigkeit und Genauigkeit",
+        "url": "https://typerspace.com/",
+        "applicationCategory": "Game",
+        "genre": ["Educational", "Action", "Typing"],
+        "inLanguage": "de-DE",
+        "operatingSystem": "Web Browser",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "EUR"
+        },
+        "featureList": [
+            "2D Retro-Modus",
+            "3D Weltraum-Modus",
+            "5 Schwierigkeitsstufen (Leicht, Mittel, Schwer, Ultra, Extrem)",
+            "Profi-Modus mit Groß-/Kleinschreibung",
+            "Highscore-System",
+            "WPM und Genauigkeits-Tracking"
+        ],
+        "screenshot": "https://typerspace.com/screenshot.png"
+    }
+    </script>
+
     <script src="https://cdn.jsdelivr.net/npm/phaser-ce@2.20.1/build/phaser.min.js"></script>
     <style>
         * {
@@ -199,6 +253,18 @@
             background: linear-gradient(135deg, #aa0000 0%, #ff0000 100%);
         }
 
+        .difficulty-btn[data-difficulty="extreme"] {
+            background: linear-gradient(135deg, #ff00ff 0%, #aa00aa 100%);
+            border-color: #ff00ff;
+            box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+        }
+
+        .difficulty-btn[data-difficulty="extreme"]:hover {
+            transform: scale(1.1);
+            box-shadow: 0 0 40px rgba(255, 0, 255, 0.8);
+            background: linear-gradient(135deg, #aa00aa 0%, #ff00ff 100%);
+        }
+
         .highscores-btn {
             padding: 12px 40px;
             font-size: 1.2rem;
@@ -308,6 +374,7 @@
             <button class="difficulty-btn" data-difficulty="medium">Mittel</button>
             <button class="difficulty-btn" data-difficulty="hard">Schwer</button>
             <button class="difficulty-btn" data-difficulty="ultra">Ultraschwer</button>
+            <button class="difficulty-btn" data-difficulty="extreme">Extrem</button>
         </div>
     </div>
 
