@@ -46,6 +46,7 @@ export class TyperSpaceGame3D {
 
     // Score tracking
     private scoreSaved: boolean = false;
+    private currentScore: number = 0;
 
     constructor(containerElement: HTMLElement, speed: string, isProMode: boolean = false) {
         this.container = containerElement;
@@ -93,9 +94,6 @@ export class TyperSpaceGame3D {
         // Create UI
         this.createUI();
 
-        // Load highscore asynchronously
-        this.loadHighscore();
-
         // Handle window resize
         window.addEventListener('resize', () => this.onWindowResize());
 
@@ -109,16 +107,29 @@ export class TyperSpaceGame3D {
         this.animate();
     }
 
-    private async loadHighscore(): Promise<void> {
-        // Wait for highscore service to initialize and get stats
-        const stats = await highscoreService.getStats();
-        const personalBest = stats.personalBest[this.speed as Difficulty];
-        const highscoreValue = personalBest ? highscoreService.formatScore(personalBest.score) : '-';
+    private calculateCurrentScore(): void {
+        // Calculate current score using the same formula as the highscore service
+        const currentTime = (Date.now() - this.startTime) / 1000;
+        const totalEnemies = GAME_CONFIG.waves.reduce((sum, wave) => sum + wave.wordsPerWave, 0);
 
-        // Update highscore display
-        const highscoreElement = document.getElementById('highscore-value');
-        if (highscoreElement) {
-            highscoreElement.textContent = highscoreValue;
+        const score = highscoreService.calculateScore({
+            correctKeystrokes: this.correctKeystrokes,
+            totalKeystrokes: this.totalKeystrokes,
+            enemiesDefeated: this.destroyed,
+            totalEnemies: totalEnemies,
+            time: currentTime,
+            difficulty: this.speed as Difficulty,
+            proMode: this.isProMode,
+            mode: '3D',
+            success: false // Will be updated at the end
+        });
+
+        this.currentScore = score;
+
+        // Update score display
+        const scoreElement = document.getElementById('score-value');
+        if (scoreElement) {
+            scoreElement.textContent = highscoreService.formatScore(score);
         }
     }
 
@@ -183,17 +194,12 @@ export class TyperSpaceGame3D {
         this.uiContainer.style.pointerEvents = 'none';
         this.uiContainer.style.zIndex = '1000';
 
-        // Get personal best highscore (sync - may be empty initially)
-        const stats = highscoreService.getStatsSync();
-        const personalBest = stats.personalBest[this.speed as Difficulty];
-        const highscoreValue = personalBest ? highscoreService.formatScore(personalBest.score) : '-';
-
         this.uiContainer.innerHTML = `
             <div style="display: flex; justify-content: space-between; margin-bottom: 10px;">
                 <div>Leben: <span id="health-value" style="color: #00ff00;">${this.health}</span></div>
                 <div><span id="destroyed-value" style="color: #00d4ff;">Welle 1: 0/${GAME_CONFIG.waves[0].wordsPerWave}</span></div>
                 <div>Genauigkeit: <span id="accuracy-value" style="color: #ffaa00;">0.0</span>%</div>
-                <div>Highscore: <span id="highscore-value" style="color: #FFD700;">${highscoreValue}</span></div>
+                <div>Score: <span id="score-value" style="color: #FFD700;">0</span></div>
             </div>
             <div id="current-word-display" style="
                 position: absolute;
@@ -532,6 +538,9 @@ export class TyperSpaceGame3D {
             const accuracy = (this.correctKeystrokes / this.totalKeystrokes * 100).toFixed(1);
             accuracyEl.textContent = accuracy;
         }
+
+        // Update current score
+        this.calculateCurrentScore();
     }
 
     private gameOver(): void {
