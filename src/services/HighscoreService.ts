@@ -493,14 +493,27 @@ export class HighscoreService {
                 return this.createEmptyData();
             }
 
+            console.log('Raw JSON from Upstash (first 200 chars):', json.substring(0, 200));
             const data = JSON.parse(json) as HighscoreData;
 
             // Version check (for future migrations)
+            console.log('Loaded data from Upstash:', {
+                version: data.version,
+                expectedVersion: this.VERSION,
+                entriesCount: {
+                    easy: data.entries.easy?.length || 0,
+                    medium: data.entries.medium?.length || 0,
+                    hard: data.entries.hard?.length || 0,
+                    ultra: data.entries.ultra?.length || 0
+                }
+            });
+
             if (data.version !== this.VERSION) {
-                console.warn('Highscore version mismatch, creating new data');
+                console.warn('Highscore version mismatch! Got:', data.version, 'Expected:', this.VERSION);
                 return this.createEmptyData();
             }
 
+            console.log('Version match! Using loaded data');
             return data;
         } catch (error) {
             console.error('Failed to load from Upstash:', error);
