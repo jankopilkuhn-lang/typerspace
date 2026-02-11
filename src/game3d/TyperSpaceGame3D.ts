@@ -43,6 +43,7 @@ export class TyperSpaceGame3D {
 
     // UI
     private uiContainer: HTMLElement;
+    private damageOverlay: HTMLElement;
 
     // Score tracking
     private scoreSaved: boolean = false;
@@ -93,6 +94,9 @@ export class TyperSpaceGame3D {
 
         // Create UI
         this.createUI();
+
+        // Create damage overlay
+        this.createDamageOverlay();
 
         // Handle window resize
         window.addEventListener('resize', () => this.onWindowResize());
@@ -214,6 +218,31 @@ export class TyperSpaceGame3D {
         `;
 
         this.container.appendChild(this.uiContainer);
+    }
+
+    private createDamageOverlay(): void {
+        // Create overlay for damage flash effect
+        this.damageOverlay = document.createElement('div');
+        this.damageOverlay.style.position = 'fixed';
+        this.damageOverlay.style.top = '0';
+        this.damageOverlay.style.left = '0';
+        this.damageOverlay.style.width = '100%';
+        this.damageOverlay.style.height = '100%';
+        this.damageOverlay.style.backgroundColor = 'rgba(255, 0, 0, 0)';
+        this.damageOverlay.style.pointerEvents = 'none';
+        this.damageOverlay.style.zIndex = '999';
+        this.damageOverlay.style.transition = 'background-color 0.1s ease-out';
+        document.body.appendChild(this.damageOverlay);
+    }
+
+    private showDamageFlash(): void {
+        // Flash red
+        this.damageOverlay.style.backgroundColor = 'rgba(255, 0, 0, 0.5)';
+
+        // Fade out after short delay
+        setTimeout(() => {
+            this.damageOverlay.style.backgroundColor = 'rgba(255, 0, 0, 0)';
+        }, 100);
     }
 
     private spawnAsteroid(): void {
@@ -852,6 +881,7 @@ export class TyperSpaceGame3D {
             // Check if asteroid reached player
             if (asteroid.getPosition().x < -12) {
                 this.health--;
+                this.showDamageFlash();
                 asteroid.destroy(this.scene);
                 this.asteroids.splice(i, 1);
 
@@ -874,6 +904,7 @@ export class TyperSpaceGame3D {
             // Check if boss reached player
             if (this.boss.getPosition().x < -12) {
                 this.health = 0;
+                this.showDamageFlash();
                 this.gameOver();
             }
         }
