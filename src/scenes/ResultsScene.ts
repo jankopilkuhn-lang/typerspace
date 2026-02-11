@@ -23,6 +23,7 @@ export class ResultsScene extends Phaser.State {
     private isNewHighscore: boolean;
     private highscoreRank: number | null;
     private unsavedEntry: any; // Store entry before saving with name
+    private scoreSaved: boolean = false; // Track if score has been saved
 
     async init(data: any): Promise<void> {
         this.accuracy = data.accuracy || 0;
@@ -301,6 +302,11 @@ export class ResultsScene extends Phaser.State {
     }
 
     saveScoreWithName(): void {
+        // Check if already saved to prevent duplicate entries
+        if (this.scoreSaved) {
+            return;
+        }
+
         const input = document.getElementById('player-name-input') as HTMLInputElement;
         const button = document.getElementById('save-highscore-button') as HTMLButtonElement;
         if (!input) return;
@@ -313,6 +319,9 @@ export class ResultsScene extends Phaser.State {
         // Add name to entry and save
         this.unsavedEntry.playerName = playerName;
         highscoreService.saveScore(this.unsavedEntry);
+
+        // Mark as saved
+        this.scoreSaved = true;
 
         // Remove input field and button
         input.remove();

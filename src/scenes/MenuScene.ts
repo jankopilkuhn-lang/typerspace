@@ -19,7 +19,7 @@ export class MenuScene extends Phaser.State {
         // Create starfield
         this.createStarfield();
 
-        // Title
+        // Title - centered vertically in upper portion
         const titleStyle = {
             font: '64px Courier New',
             fill: '#00d4ff',
@@ -27,7 +27,7 @@ export class MenuScene extends Phaser.State {
         };
         const title = this.game.add.text(
             this.game.width / 2,
-            100,
+            80,
             'TyperSpace',
             titleStyle
         );
@@ -41,7 +41,7 @@ export class MenuScene extends Phaser.State {
         };
         const subtitle = this.game.add.text(
             this.game.width / 2,
-            170,
+            150,
             'Wähle deinen Schwierigkeitsgrad',
             subtitleStyle
         );
@@ -134,7 +134,7 @@ export class MenuScene extends Phaser.State {
 
         const button = this.game.add.text(
             this.game.width / 2,
-            220,
+            200,
             '🏆 Highscores',
             buttonStyle
         );
@@ -189,11 +189,16 @@ export class MenuScene extends Phaser.State {
     }
 
     createDifficultyButtons(): void {
+        // Center buttons vertically in the middle-lower section
+        const centerY = this.game.height / 2;
+        const buttonSpacing = 75;
+        const startY = centerY + 30;
+
         const difficulties = [
-            { name: 'Leicht', value: 'easy', color: '#00ff00', y: 310 },
-            { name: 'Mittel', value: 'medium', color: '#ffff00', y: 390 },
-            { name: 'Schwer', value: 'hard', color: '#ff9900', y: 470 },
-            { name: 'Ultraschwer', value: 'ultra', color: '#ff0000', y: 550 }
+            { name: 'Leicht', value: 'easy', color: '#00ff00', y: startY },
+            { name: 'Mittel', value: 'medium', color: '#ffff00', y: startY + buttonSpacing },
+            { name: 'Schwer', value: 'hard', color: '#ff9900', y: startY + buttonSpacing * 2 },
+            { name: 'Ultraschwer', value: 'ultra', color: '#ff0000', y: startY + buttonSpacing * 3 }
         ];
 
         difficulties.forEach(diff => {
