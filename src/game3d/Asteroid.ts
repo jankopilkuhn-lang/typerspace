@@ -65,10 +65,10 @@ export class Asteroid {
     }
 
     private createAsteroidMesh(): THREE.Mesh {
-        // Start with icosahedron geometry - higher detail level
-        const geometry = new THREE.IcosahedronGeometry(1, 2);
+        // Start with icosahedron geometry - much higher detail level
+        const geometry = new THREE.IcosahedronGeometry(1, 3);
 
-        // Deform vertices for irregular shape with more variation
+        // Deform vertices for irregular shape with strong variation
         const positions = geometry.attributes.position;
         for (let i = 0; i < positions.count; i++) {
             const vertex = new THREE.Vector3(
@@ -77,8 +77,8 @@ export class Asteroid {
                 positions.getZ(i)
             );
 
-            // Add more pronounced noise for irregular surface
-            const noise = Math.random() * 0.4 + 0.8;
+            // Add strong noise for very irregular surface
+            const noise = Math.random() * 0.6 + 0.7;
             vertex.normalize().multiplyScalar(noise);
 
             positions.setXYZ(i, vertex.x, vertex.y, vertex.z);
@@ -86,29 +86,32 @@ export class Asteroid {
 
         geometry.computeVertexNormals();
 
-        // Varied color palette for asteroids
+        // Much more varied color palette with striking differences
         const colorVariations = [
-            0x6a5a4a, // Original brown
-            0x5a4a3a, // Darker brown
-            0x7a6a5a, // Lighter brown
-            0x5a5a5a, // Dark gray
-            0x6a6a6a, // Medium gray
-            0x4a3a2a  // Dark reddish-brown
+            0x8b7355, // Light brown
+            0x4a3428, // Very dark brown
+            0x9a8a7a, // Beige/tan
+            0x3a3a3a, // Very dark gray
+            0x7a7a7a, // Medium gray
+            0x6a4a2a, // Reddish-brown
+            0x5a6a5a, // Greenish-gray
+            0x8a5a3a, // Orange-brown
+            0x4a4a6a  // Bluish-gray
         ];
         const asteroidColor = colorVariations[Math.floor(Math.random() * colorVariations.length)];
 
-        // Varied material properties
-        const roughness = 0.85 + Math.random() * 0.15; // 0.85-1.0
-        const metalness = 0.05 + Math.random() * 0.1;  // 0.05-0.15
+        // More varied material properties
+        const roughness = 0.75 + Math.random() * 0.25; // 0.75-1.0
+        const metalness = 0.0 + Math.random() * 0.2;   // 0.0-0.2
 
-        // Create material with realistic asteroid look
+        // Create material with varied asteroid look
         const material = new THREE.MeshStandardMaterial({
             color: asteroidColor,
             roughness: roughness,
             metalness: metalness,
             flatShading: true,
             emissive: asteroidColor,
-            emissiveIntensity: 0.05 // Subtle glow
+            emissiveIntensity: 0.15 // More noticeable glow
         });
 
         const mesh = new THREE.Mesh(geometry, material);
