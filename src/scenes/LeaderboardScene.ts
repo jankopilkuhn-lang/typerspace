@@ -68,11 +68,16 @@ export class LeaderboardScene extends Phaser.State {
     }
 
     createDifficultyTabs(): void {
+        const centerX = this.game.width / 2;
+        const tabSpacing = 200;
+        const totalTabs = 4;
+        const startX = centerX - (tabSpacing * (totalTabs - 1)) / 2;
+
         const difficulties: { name: string; value: Difficulty; color: string; x: number }[] = [
-            { name: 'Leicht', value: 'easy', color: '#00ff00', x: 200 },
-            { name: 'Mittel', value: 'medium', color: '#ffff00', x: 400 },
-            { name: 'Schwer', value: 'hard', color: '#ff9900', x: 600 },
-            { name: 'Ultra', value: 'ultra', color: '#ff0000', x: 800 }
+            { name: 'Leicht', value: 'easy', color: '#00ff00', x: startX },
+            { name: 'Mittel', value: 'medium', color: '#ffff00', x: startX + tabSpacing },
+            { name: 'Schwer', value: 'hard', color: '#ff9900', x: startX + tabSpacing * 2 },
+            { name: 'Ultra', value: 'ultra', color: '#ff0000', x: startX + tabSpacing * 3 }
         ];
 
         difficulties.forEach(diff => {
@@ -126,12 +131,12 @@ export class LeaderboardScene extends Phaser.State {
         });
     }
 
-    renderLeaderboard(): void {
+    async renderLeaderboard(): Promise<void> {
         // Clear previous score texts
         this.scoreTexts.forEach(text => text.destroy());
         this.scoreTexts = [];
 
-        const scores = highscoreService.getHighscores(this.selectedDifficulty, 10);
+        const scores = await highscoreService.getHighscores(this.selectedDifficulty, 10);
 
         // Header
         const headerStyle = {
@@ -140,14 +145,19 @@ export class LeaderboardScene extends Phaser.State {
             fontWeight: 'bold'
         };
 
+        // Center the table
+        const centerX = this.game.width / 2;
+        const tableWidth = 900;
+        const startX = centerX - tableWidth / 2;
+
         const headers = [
-            { text: '#', x: 100 },
-            { text: 'NAME', x: 220 },
-            { text: 'SCORE', x: 380 },
-            { text: 'ACC', x: 540 },
-            { text: 'WPM', x: 680 },
-            { text: 'ZEIT', x: 820 },
-            { text: 'PROFI', x: 960 }
+            { text: '#', x: startX + 50 },
+            { text: 'NAME', x: startX + 170 },
+            { text: 'SCORE', x: startX + 330 },
+            { text: 'ACC', x: startX + 490 },
+            { text: 'WPM', x: startX + 630 },
+            { text: 'ZEIT', x: startX + 770 },
+            { text: 'PROFI', x: startX + 850 }
         ];
 
         headers.forEach(header => {
@@ -159,8 +169,8 @@ export class LeaderboardScene extends Phaser.State {
         // Separator line
         const line = this.game.add.graphics(0, 0);
         line.lineStyle(2, 0x8892b0, 1);
-        line.moveTo(100, 230);
-        line.lineTo(1100, 230);
+        line.moveTo(startX, 230);
+        line.lineTo(startX + tableWidth, 230);
         this.scoreTexts.push(line);
 
         // Score entries
@@ -233,12 +243,12 @@ export class LeaderboardScene extends Phaser.State {
         }
     }
 
-    renderPersonalStats(): void {
+    async renderPersonalStats(): Promise<void> {
         // Clear previous stats texts
         this.statsTexts.forEach(text => text.destroy());
         this.statsTexts = [];
 
-        const stats = highscoreService.getStats();
+        const stats = await highscoreService.getStats();
 
         const statsStyle = {
             font: '22px Courier New',
@@ -303,7 +313,7 @@ export class LeaderboardScene extends Phaser.State {
         }, this);
     }
 
-    refreshLeaderboard(): void {
+    async refreshLeaderboard(): Promise<void> {
         // Update difficulty tab styling
         const difficulties: Difficulty[] = ['easy', 'medium', 'hard', 'ultra'];
         difficulties.forEach(diff => {
@@ -316,8 +326,8 @@ export class LeaderboardScene extends Phaser.State {
         });
 
         // Re-render leaderboard and stats
-        this.renderLeaderboard();
-        this.renderPersonalStats();
+        await this.renderLeaderboard();
+        await this.renderPersonalStats();
 
         // Re-draw underlines (simple approach: full refresh would be better in production)
         // For now, the tabs are functional without animated underlines

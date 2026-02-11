@@ -220,7 +220,10 @@ export class HighscoreService {
     /**
      * Get top N highscores for a difficulty
      */
-    public getHighscores(difficulty: Difficulty, limit: number = 10): HighscoreEntry[] {
+    public async getHighscores(difficulty: Difficulty, limit: number = 10): Promise<HighscoreEntry[]> {
+        // Wait for initialization to complete
+        await this.waitForInit();
+
         const data = this.cache || this.createEmptyData();
         const entries = data.entries[difficulty] || [];
         return entries.slice(0, limit);
@@ -284,7 +287,10 @@ export class HighscoreService {
     /**
      * Get personal statistics across all games
      */
-    public getStats(): HighscoreStats {
+    public async getStats(): Promise<HighscoreStats> {
+        // Wait for initialization to complete
+        await this.waitForInit();
+
         const data = this.cache || this.createEmptyData();
 
         // Collect all entries from all difficulties
