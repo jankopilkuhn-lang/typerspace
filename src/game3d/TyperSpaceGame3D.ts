@@ -57,13 +57,6 @@ export class TyperSpaceGame3D {
         this.spawnInterval = speedConfig.spawnInterval3D;
         this.asteroidSpeed = speedConfig.asteroidSpeed3D;
 
-        console.log('TyperSpaceGame3D initialized with:', {
-            speed: speed,
-            spawnInterval: this.spawnInterval,
-            asteroidSpeed: this.asteroidSpeed,
-            speedConfig: speedConfig
-        });
-
         // Load words for first wave
         const waveConfig = GAME_CONFIG.waves[this.currentWave];
         this.words = getWordsByDifficulty(waveConfig.wordDifficulty);
@@ -241,8 +234,6 @@ export class TyperSpaceGame3D {
             direction,
             this.isProMode
         );
-
-        console.log('Spawned asteroid with speed:', this.asteroidSpeed, 'word:', word);
 
         this.asteroids.push(asteroid);
     }
