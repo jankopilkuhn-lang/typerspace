@@ -27,7 +27,17 @@ export default async function handler(req, res) {
 
     if (!UPSTASH_URL || !UPSTASH_TOKEN) {
         console.error('Upstash credentials not found in environment variables');
-        return res.status(500).json({ error: 'Server configuration error' });
+        console.error('Available env vars:', Object.keys(process.env).filter(k => k.includes('UPSTASH')));
+        console.error('UPSTASH_URL:', UPSTASH_URL ? 'set' : 'missing');
+        console.error('UPSTASH_TOKEN:', UPSTASH_TOKEN ? 'set' : 'missing');
+        return res.status(500).json({
+            error: 'Server configuration error',
+            debug: {
+                url: UPSTASH_URL ? 'set' : 'missing',
+                token: UPSTASH_TOKEN ? 'set' : 'missing',
+                availableEnvVars: Object.keys(process.env).filter(k => k.includes('UPSTASH'))
+            }
+        });
     }
 
     try {
