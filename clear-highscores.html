@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Clear Highscores</title>
+</head>
+<body>
+    <h1>Clear Highscores</h1>
+    <button onclick="clearData()">Clear Upstash Data</button>
+    <pre id="output"></pre>
+    
+    <script>
+        async function clearData() {
+            const output = document.getElementById('output');
+            output.textContent = 'Deleting...';
+            
+            try {
+                const response = await fetch('/api/redis/del/typerspace_highscores', {
+                    method: 'DELETE'
+                });
+                
+                if (response.ok) {
+                    output.textContent = '✅ Data cleared successfully! You can now close this page.';
+                } else {
+                    output.textContent = '❌ Error: ' + response.statusText;
+                }
+            } catch (error) {
+                output.textContent = '❌ Error: ' + error.message;
+            }
+        }
+    </script>
+</body>
+</html>

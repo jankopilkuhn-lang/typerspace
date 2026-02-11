@@ -32,7 +32,7 @@ export default async function handler(req, res) {
 
     try {
         const response = await fetch(`${UPSTASH_URL}/del/${key}`, {
-            method: 'DELETE',
+            method: 'GET',  // Upstash REST API uses GET for all operations
             headers: {
                 'Authorization': `Bearer ${UPSTASH_TOKEN}`,
             },

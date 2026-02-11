@@ -69,9 +69,11 @@ export class LeaderboardScene extends Phaser.State {
 
     createDifficultyTabs(): void {
         const centerX = this.game.width / 2;
-        const tabSpacing = 200;
+        const tabSpacing = 180;
         const totalTabs = 4;
         const startX = centerX - (tabSpacing * (totalTabs - 1)) / 2;
+
+        console.log('LeaderboardScene: game.width =', this.game.width, 'centerX =', centerX, 'tabs startX =', startX);
 
         const difficulties: { name: string; value: Difficulty; color: string; x: number }[] = [
             { name: 'Leicht', value: 'easy', color: '#00ff00', x: startX },
@@ -147,19 +149,21 @@ export class LeaderboardScene extends Phaser.State {
             fontWeight: 'bold'
         };
 
-        // Center the table
+        // Center the table - use 1000px width centered in 1200px game width
         const centerX = this.game.width / 2;
-        const tableWidth = 900;
+        const tableWidth = 1000;
         const startX = centerX - tableWidth / 2;
+
+        console.log('LeaderboardScene: table centerX =', centerX, 'tableWidth =', tableWidth, 'startX =', startX);
 
         const headers = [
             { text: '#', x: startX + 50 },
-            { text: 'NAME', x: startX + 170 },
-            { text: 'SCORE', x: startX + 330 },
-            { text: 'ACC', x: startX + 490 },
-            { text: 'WPM', x: startX + 630 },
-            { text: 'ZEIT', x: startX + 770 },
-            { text: 'PROFI', x: startX + 850 }
+            { text: 'NAME', x: startX + 200 },
+            { text: 'SCORE', x: startX + 380 },
+            { text: 'ACC', x: startX + 560 },
+            { text: 'WPM', x: startX + 700 },
+            { text: 'ZEIT', x: startX + 840 },
+            { text: 'PROFI', x: startX + 950 }
         ];
 
         headers.forEach(header => {
@@ -202,14 +206,14 @@ export class LeaderboardScene extends Phaser.State {
 
                 // Player Name
                 const playerName = entry.playerName || 'Spieler';
-                const name = this.game.add.text(startX + 170, yPos, playerName, entryStyle);
+                const name = this.game.add.text(startX + 200, yPos, playerName, entryStyle);
                 name.anchor.setTo(0.5);
                 this.scoreTexts.push(name);
 
                 // Score
                 const scoreColor = index < 3 ? '#FFD700' : '#ffffff';
                 const score = this.game.add.text(
-                    startX + 330,
+                    startX + 380,
                     yPos,
                     highscoreService.formatScore(entry.score),
                     { ...entryStyle, fill: scoreColor }
@@ -218,23 +222,23 @@ export class LeaderboardScene extends Phaser.State {
                 this.scoreTexts.push(score);
 
                 // Accuracy
-                const accuracy = this.game.add.text(startX + 490, yPos, `${entry.accuracy}%`, entryStyle);
+                const accuracy = this.game.add.text(startX + 560, yPos, `${entry.accuracy}%`, entryStyle);
                 accuracy.anchor.setTo(0.5);
                 this.scoreTexts.push(accuracy);
 
                 // WPM
-                const wpm = this.game.add.text(startX + 630, yPos, `${entry.wpm}`, entryStyle);
+                const wpm = this.game.add.text(startX + 700, yPos, `${entry.wpm}`, entryStyle);
                 wpm.anchor.setTo(0.5);
                 this.scoreTexts.push(wpm);
 
                 // Time
-                const time = this.game.add.text(startX + 770, yPos, `${entry.time.toFixed(1)}s`, entryStyle);
+                const time = this.game.add.text(startX + 840, yPos, `${entry.time.toFixed(1)}s`, entryStyle);
                 time.anchor.setTo(0.5);
                 this.scoreTexts.push(time);
 
                 // Pro mode indicator
                 const proMode = this.game.add.text(
-                    startX + 850,
+                    startX + 950,
                     yPos,
                     entry.proMode ? '⚡' : '-',
                     entryStyle

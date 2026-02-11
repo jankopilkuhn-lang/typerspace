@@ -496,6 +496,22 @@ export class HighscoreService {
             console.log('Raw JSON from Upstash (first 200 chars):', json.substring(0, 200));
             const data = JSON.parse(json) as HighscoreData;
 
+            // Debug: Check what we actually got
+            console.log('Parsed data keys:', Object.keys(data));
+            console.log('Data structure:', {
+                hasVersion: 'version' in data,
+                hasEntries: 'entries' in data,
+                hasLastUpdated: 'lastUpdated' in data,
+                version: data.version,
+                entriesType: typeof data.entries
+            });
+
+            // Safety check for entries
+            if (!data.entries || typeof data.entries !== 'object') {
+                console.error('Invalid data structure - entries missing or invalid');
+                return this.createEmptyData();
+            }
+
             // Version check (for future migrations)
             console.log('Loaded data from Upstash:', {
                 version: data.version,

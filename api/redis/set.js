@@ -42,7 +42,7 @@ export default async function handler(req, res) {
                 'Authorization': `Bearer ${UPSTASH_TOKEN}`,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(value),
+            body: value,  // Don't stringify again - value is already a JSON string from the client
         });
 
         if (!response.ok) {
