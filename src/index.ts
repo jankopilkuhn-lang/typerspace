@@ -145,6 +145,19 @@ const setupButtons = (): void => {
     } else {
         console.log('Click listeners attached to all difficulty buttons');
     }
+
+    // Setup highscores button
+    const highscoresBtn = document.getElementById('view-highscores-btn');
+    if (highscoresBtn) {
+        highscoresBtn.addEventListener('click', () => {
+            console.log('Highscores button clicked');
+            // Set flag to navigate to leaderboard
+            localStorage.setItem('typerspace_navigate_to_leaderboard', 'true');
+            // Reload page to trigger navigation
+            location.reload();
+        });
+        console.log('Highscores button listener attached');
+    }
 };
 
 // Check if we should auto-navigate to leaderboard (from 3D mode)
