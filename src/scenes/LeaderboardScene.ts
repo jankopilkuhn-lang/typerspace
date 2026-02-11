@@ -136,7 +136,9 @@ export class LeaderboardScene extends Phaser.State {
         this.scoreTexts.forEach(text => text.destroy());
         this.scoreTexts = [];
 
+        console.log('LeaderboardScene: Loading scores for difficulty:', this.selectedDifficulty);
         const scores = await highscoreService.getHighscores(this.selectedDifficulty, 10);
+        console.log('LeaderboardScene: Loaded scores:', scores.length, scores);
 
         // Header
         const headerStyle = {
@@ -301,7 +303,8 @@ export class LeaderboardScene extends Phaser.State {
         backBtn.input.useHandCursor = true;
 
         backBtn.events.onInputDown.add(() => {
-            this.game.state.start('MenuScene');
+            // Reload page to return to start screen
+            location.reload();
         }, this);
 
         backBtn.events.onInputOver.add(() => {
