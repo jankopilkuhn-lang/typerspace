@@ -107,23 +107,23 @@ export class Boss {
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d')!;
 
-        // Dynamic canvas width based on text length (Boss words can be very long)
-        const minWidth = 1024;
-        const maxWidth = 3072;
-        const estimatedWidth = Math.min(maxWidth, Math.max(minWidth, text.length * 70));
+        // Higher resolution canvas for sharper text
+        const minWidth = 2048;
+        const maxWidth = 4096;
+        const estimatedWidth = Math.min(maxWidth, Math.max(minWidth, text.length * 80));
         canvas.width = estimatedWidth;
-        canvas.height = 128;
+        canvas.height = 256; // Double height for better quality
 
         // Boss text has red background
         context.fillStyle = 'rgba(139, 0, 0, 0.9)';
         context.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Dynamic font size based on word length
-        let fontSize = 72;
-        if (text.length > 10) fontSize = 64;
-        if (text.length > 12) fontSize = 56;
-        if (text.length > 15) fontSize = 48;
-        if (text.length > 18) fontSize = 40;
+        // Dynamic font size based on word length (scaled for higher canvas)
+        let fontSize = 144;
+        if (text.length > 10) fontSize = 128;
+        if (text.length > 12) fontSize = 112;
+        if (text.length > 15) fontSize = 96;
+        if (text.length > 18) fontSize = 80;
 
         context.font = `Bold ${fontSize}px Courier New`;
         context.fillStyle = '#ffff00'; // Yellow text
@@ -132,6 +132,11 @@ export class Boss {
         context.fillText(text, canvas.width / 2, canvas.height / 2);
 
         const texture = new THREE.CanvasTexture(canvas);
+        // Set texture filters for sharper rendering
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.generateMipmaps = false;
+
         const material = new THREE.SpriteMaterial({
             map: texture,
             depthTest: false,
@@ -140,7 +145,7 @@ export class Boss {
         const sprite = new THREE.Sprite(material);
 
         // Dynamic scale based on canvas width
-        const scaleX = (canvas.width / 128) * 1;
+        const scaleX = (canvas.width / 256) * 1;
         sprite.scale.set(scaleX, 2, 1);
         sprite.renderOrder = 999;
 
@@ -215,23 +220,23 @@ export class Boss {
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d')!;
 
-        // Dynamic canvas width based on remaining text length
-        const minWidth = 1024;
-        const maxWidth = 3072;
-        const estimatedWidth = Math.min(maxWidth, Math.max(minWidth, remaining.length * 70));
+        // Higher resolution canvas for sharper text
+        const minWidth = 2048;
+        const maxWidth = 4096;
+        const estimatedWidth = Math.min(maxWidth, Math.max(minWidth, remaining.length * 80));
         canvas.width = estimatedWidth;
-        canvas.height = 128;
+        canvas.height = 256; // Double height for better quality
 
         // Red background
         context.fillStyle = 'rgba(139, 0, 0, 0.9)';
         context.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Dynamic font size based on remaining text length
-        let fontSize = 72;
-        if (remaining.length > 10) fontSize = 64;
-        if (remaining.length > 12) fontSize = 56;
-        if (remaining.length > 15) fontSize = 48;
-        if (remaining.length > 18) fontSize = 40;
+        // Dynamic font size based on remaining text length (scaled for higher canvas)
+        let fontSize = 144;
+        if (remaining.length > 10) fontSize = 128;
+        if (remaining.length > 12) fontSize = 112;
+        if (remaining.length > 15) fontSize = 96;
+        if (remaining.length > 18) fontSize = 80;
 
         context.font = `Bold ${fontSize}px Courier New`;
 
@@ -246,11 +251,16 @@ export class Boss {
         context.fillText(remaining, canvas.width / 2, canvas.height / 2);
 
         const texture = new THREE.CanvasTexture(canvas);
+        // Set texture filters for sharper rendering
+        texture.minFilter = THREE.LinearFilter;
+        texture.magFilter = THREE.LinearFilter;
+        texture.generateMipmaps = false;
+
         this.textSprite.material.map = texture;
         this.textSprite.material.needsUpdate = true;
 
         // Update sprite scale based on canvas width
-        const scaleX = (canvas.width / 128) * 1;
+        const scaleX = (canvas.width / 256) * 1;
         this.textSprite.scale.set(scaleX, 2, 1);
     }
 
