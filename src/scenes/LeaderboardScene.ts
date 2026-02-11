@@ -71,14 +71,15 @@ export class LeaderboardScene extends Phaser.State {
     createDifficultyTabs(): void {
         const centerX = this.game.width / 2;
         const tabSpacing = 180;
-        const totalTabs = 4;
+        const totalTabs = 5;
         const startX = centerX - (tabSpacing * (totalTabs - 1)) / 2;
 
         const difficulties: { name: string; value: Difficulty; color: string; x: number }[] = [
             { name: 'Leicht', value: 'easy', color: '#00ff00', x: startX },
             { name: 'Mittel', value: 'medium', color: '#ffff00', x: startX + tabSpacing },
             { name: 'Schwer', value: 'hard', color: '#ff9900', x: startX + tabSpacing * 2 },
-            { name: 'Ultra', value: 'ultra', color: '#ff0000', x: startX + tabSpacing * 3 }
+            { name: 'Ultra', value: 'ultra', color: '#ff0000', x: startX + tabSpacing * 3 },
+            { name: 'Extrem', value: 'extreme', color: '#ff00ff', x: startX + tabSpacing * 4 }
         ];
 
         difficulties.forEach(diff => {
@@ -285,12 +286,13 @@ export class LeaderboardScene extends Phaser.State {
 
     async refreshLeaderboard(): Promise<void> {
         // Update difficulty tab styling
-        const difficulties: Difficulty[] = ['easy', 'medium', 'hard', 'ultra'];
+        const difficulties: Difficulty[] = ['easy', 'medium', 'hard', 'ultra', 'extreme'];
         const difficultyColors = {
             easy: '#00ff00',
             medium: '#ffff00',
             hard: '#ff9900',
-            ultra: '#ff0000'
+            ultra: '#ff0000',
+            extreme: '#ff00ff'
         };
 
         difficulties.forEach(diff => {

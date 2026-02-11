@@ -2,7 +2,7 @@
  * TyperSpace Highscore System - Type Definitions
  */
 
-export type Difficulty = 'easy' | 'medium' | 'hard' | 'ultra';
+export type Difficulty = 'easy' | 'medium' | 'hard' | 'ultra' | 'extreme';
 export type GameMode = '2D' | '3D';
 
 /**
@@ -46,6 +46,7 @@ export interface HighscoreData {
         medium: HighscoreEntry[];
         hard: HighscoreEntry[];
         ultra: HighscoreEntry[];
+        extreme: HighscoreEntry[];
     };
 }
 

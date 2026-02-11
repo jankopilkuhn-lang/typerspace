@@ -5,7 +5,7 @@
 
 export interface WaveConfig {
     wordsPerWave: number;        // Anzahl Wörter pro Welle
-    wordDifficulty: string;      // Schwierigkeit der Wörter (easy, medium, hard, ultra)
+    wordDifficulty: string;      // Schwierigkeit der Wörter (easy, medium, hard, ultra, extreme)
     waveName: string;            // Name der Welle
 }
 
@@ -38,6 +38,11 @@ export const GAME_CONFIG = {
             wordsPerWave: 30,
             wordDifficulty: 'ultra',
             waveName: 'Welle 4: Ultra'
+        },
+        {
+            wordsPerWave: 35,
+            wordDifficulty: 'extreme',
+            waveName: 'Welle 5: Extrem'
         }
     ] as WaveConfig[],
 
@@ -66,6 +71,12 @@ export const GAME_CONFIG = {
             spawnInterval3D: 1.0,
             enemySpeed2D: 2.0,
             asteroidSpeed3D: 4.0
+        },
+        extreme: {
+            spawnInterval2D: 800,
+            spawnInterval3D: 0.8,
+            enemySpeed2D: 2.5,
+            asteroidSpeed3D: 5.0
         }
     } as Record<string, SpeedConfig>,
 

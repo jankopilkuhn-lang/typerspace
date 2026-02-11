@@ -198,7 +198,8 @@ export class MenuScene extends Phaser.State {
             { name: 'Leicht', value: 'easy', color: '#00ff00', y: startY },
             { name: 'Mittel', value: 'medium', color: '#ffff00', y: startY + buttonSpacing },
             { name: 'Schwer', value: 'hard', color: '#ff9900', y: startY + buttonSpacing * 2 },
-            { name: 'Ultraschwer', value: 'ultra', color: '#ff0000', y: startY + buttonSpacing * 3 }
+            { name: 'Ultraschwer', value: 'ultra', color: '#ff0000', y: startY + buttonSpacing * 3 },
+            { name: 'Extrem', value: 'extreme', color: '#ff00ff', y: startY + buttonSpacing * 4 }
         ];
 
         difficulties.forEach(diff => {

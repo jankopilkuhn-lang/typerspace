@@ -176,6 +176,7 @@ export class ResultsScene extends Phaser.State {
             case 'medium': return 'Mittel';
             case 'hard': return 'Schwer';
             case 'ultra': return 'Ultraschwer';
+            case 'extreme': return 'Extrem';
             default: return 'Leicht';
         }
     }

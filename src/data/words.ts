@@ -25,6 +25,7 @@ export const EASY_WORDS = levelWords.levels.easy.words;
 export const MEDIUM_WORDS = levelWords.levels.medium.words;
 export const HARD_WORDS = levelWords.levels.hard.words;
 export const ULTRA_HARD_WORDS = levelWords.levels.ultra.words;
+export const EXTREME_WORDS = levelWords.levels.extreme.words;
 
 /**
  * Get words by difficulty level

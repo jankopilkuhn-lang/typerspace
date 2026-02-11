@@ -91,7 +91,8 @@ export class HighscoreService {
             easy: 1.0,
             medium: 1.5,
             hard: 2.0,
-            ultra: 3.0
+            ultra: 3.0,
+            extreme: 4.0
         };
         const difficultyMultiplier = difficultyMultipliers[stats.difficulty] || 1.0;
 
@@ -308,7 +309,8 @@ export class HighscoreService {
             ...data.entries.easy,
             ...data.entries.medium,
             ...data.entries.hard,
-            ...data.entries.ultra
+            ...data.entries.ultra,
+            ...data.entries.extreme
         ];
 
         const totalGames = allEntries.length;
@@ -327,7 +329,8 @@ export class HighscoreService {
             easy: data.entries.easy[0] || null,
             medium: data.entries.medium[0] || null,
             hard: data.entries.hard[0] || null,
-            ultra: data.entries.ultra[0] || null
+            ultra: data.entries.ultra[0] || null,
+            extreme: data.entries.extreme[0] || null
         };
 
         return {
@@ -351,7 +354,8 @@ export class HighscoreService {
             ...data.entries.easy,
             ...data.entries.medium,
             ...data.entries.hard,
-            ...data.entries.ultra
+            ...data.entries.ultra,
+            ...data.entries.extreme
         ];
 
         const totalGames = allEntries.length;
@@ -370,7 +374,8 @@ export class HighscoreService {
             easy: data.entries.easy[0] || null,
             medium: data.entries.medium[0] || null,
             hard: data.entries.hard[0] || null,
-            ultra: data.entries.ultra[0] || null
+            ultra: data.entries.ultra[0] || null,
+            extreme: data.entries.extreme[0] || null
         };
 
         return {
@@ -397,6 +402,7 @@ export class HighscoreService {
             data.entries.medium = [];
             data.entries.hard = [];
             data.entries.ultra = [];
+            data.entries.extreme = [];
         }
 
         data.lastUpdated = Date.now();
@@ -520,7 +526,8 @@ export class HighscoreService {
                     easy: data.entries.easy?.length || 0,
                     medium: data.entries.medium?.length || 0,
                     hard: data.entries.hard?.length || 0,
-                    ultra: data.entries.ultra?.length || 0
+                    ultra: data.entries.ultra?.length || 0,
+                    extreme: data.entries.extreme?.length || 0
                 }
             });
 
@@ -618,7 +625,8 @@ export class HighscoreService {
                 easy: [],
                 medium: [],
                 hard: [],
-                ultra: []
+                ultra: [],
+                extreme: []
             }
         };
     }
