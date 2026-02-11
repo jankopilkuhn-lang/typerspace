@@ -65,10 +65,10 @@ export class Asteroid {
     }
 
     private createAsteroidMesh(): THREE.Mesh {
-        // Start with icosahedron geometry
-        const geometry = new THREE.IcosahedronGeometry(1, 1);
+        // Start with icosahedron geometry - higher detail level
+        const geometry = new THREE.IcosahedronGeometry(1, 2);
 
-        // Deform vertices for irregular shape
+        // Deform vertices for irregular shape with more variation
         const positions = geometry.attributes.position;
         for (let i = 0; i < positions.count; i++) {
             const vertex = new THREE.Vector3(
@@ -77,8 +77,8 @@ export class Asteroid {
                 positions.getZ(i)
             );
 
-            // Add noise to create irregular surface
-            const noise = Math.random() * 0.3 + 0.85;
+            // Add more pronounced noise for irregular surface
+            const noise = Math.random() * 0.4 + 0.8;
             vertex.normalize().multiplyScalar(noise);
 
             positions.setXYZ(i, vertex.x, vertex.y, vertex.z);
@@ -86,12 +86,29 @@ export class Asteroid {
 
         geometry.computeVertexNormals();
 
+        // Varied color palette for asteroids
+        const colorVariations = [
+            0x6a5a4a, // Original brown
+            0x5a4a3a, // Darker brown
+            0x7a6a5a, // Lighter brown
+            0x5a5a5a, // Dark gray
+            0x6a6a6a, // Medium gray
+            0x4a3a2a  // Dark reddish-brown
+        ];
+        const asteroidColor = colorVariations[Math.floor(Math.random() * colorVariations.length)];
+
+        // Varied material properties
+        const roughness = 0.85 + Math.random() * 0.15; // 0.85-1.0
+        const metalness = 0.05 + Math.random() * 0.1;  // 0.05-0.15
+
         // Create material with realistic asteroid look
         const material = new THREE.MeshStandardMaterial({
-            color: 0x6a5a4a,
-            roughness: 0.9,
-            metalness: 0.1,
-            flatShading: true
+            color: asteroidColor,
+            roughness: roughness,
+            metalness: metalness,
+            flatShading: true,
+            emissive: asteroidColor,
+            emissiveIntensity: 0.05 // Subtle glow
         });
 
         const mesh = new THREE.Mesh(geometry, material);
