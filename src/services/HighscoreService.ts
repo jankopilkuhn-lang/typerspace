@@ -482,7 +482,8 @@ export class HighscoreService {
             easy: '🟢',
             medium: '⚡',
             hard: '💪',
-            ultra: '🔥'
+            ultra: '🔥',
+            extreme: '💀'
         };
         return emojis[difficulty];
     }
