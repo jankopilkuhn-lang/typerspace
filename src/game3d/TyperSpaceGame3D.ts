@@ -44,6 +44,9 @@ export class TyperSpaceGame3D {
     // UI
     private uiContainer: HTMLElement;
 
+    // Score tracking
+    private scoreSaved: boolean = false;
+
     constructor(containerElement: HTMLElement, speed: string, isProMode: boolean = false) {
         this.container = containerElement;
         this.speed = speed;
@@ -578,12 +581,9 @@ export class TyperSpaceGame3D {
             success: success
         });
 
-        // Temporarily save to check rank
-        highscoreService.saveScore(entry);
-
-        // Check if it's a new highscore
+        // Check if it's a new highscore (without saving yet)
         const isNewHighscore = highscoreService.isNewHighscore(entry.score, this.speed as Difficulty);
-        const highscoreRank = highscoreService.getLastSavedScoreRank(this.speed as Difficulty);
+        const highscoreRank = highscoreService.getEntryRank(entry);
 
         // Load saved name
         const savedName = localStorage.getItem('typerspace_player_name') || '';
@@ -742,14 +742,20 @@ export class TyperSpaceGame3D {
     }
 
     private saveScoreOnly(entry: any, nameInput: HTMLInputElement): void {
+        // Check if already saved to prevent duplicate entries
+        if (this.scoreSaved) {
+            return;
+        }
+
         const playerName = nameInput.value.trim() || 'Spieler';
 
         // Save name to localStorage
         localStorage.setItem('typerspace_player_name', playerName);
 
-        // Add name to entry and save again
+        // Add name to entry and save
         entry.playerName = playerName;
         highscoreService.saveScore(entry);
+        this.scoreSaved = true;
 
         // Show confirmation message
         const saveBtn = document.getElementById('save-score-btn-3d');
@@ -764,14 +770,18 @@ export class TyperSpaceGame3D {
     }
 
     private saveNameAndGoToLeaderboard(entry: any, nameInput: HTMLInputElement): void {
-        const playerName = nameInput.value.trim() || 'Spieler';
+        // Check if already saved to prevent duplicate entries
+        if (!this.scoreSaved) {
+            const playerName = nameInput.value.trim() || 'Spieler';
 
-        // Save name to localStorage
-        localStorage.setItem('typerspace_player_name', playerName);
+            // Save name to localStorage
+            localStorage.setItem('typerspace_player_name', playerName);
 
-        // Add name to entry and save again
-        entry.playerName = playerName;
-        highscoreService.saveScore(entry);
+            // Add name to entry and save
+            entry.playerName = playerName;
+            highscoreService.saveScore(entry);
+            this.scoreSaved = true;
+        }
 
         // Navigate to start screen with Phaser mode enabled to show leaderboard
         // We'll use a URL parameter to indicate we want to go to leaderboard
@@ -780,14 +790,18 @@ export class TyperSpaceGame3D {
     }
 
     private saveNameAndReload(entry: any, nameInput: HTMLInputElement): void {
-        const playerName = nameInput.value.trim() || 'Spieler';
+        // Check if already saved to prevent duplicate entries
+        if (!this.scoreSaved) {
+            const playerName = nameInput.value.trim() || 'Spieler';
 
-        // Save name to localStorage
-        localStorage.setItem('typerspace_player_name', playerName);
+            // Save name to localStorage
+            localStorage.setItem('typerspace_player_name', playerName);
 
-        // Add name to entry and save again
-        entry.playerName = playerName;
-        highscoreService.saveScore(entry);
+            // Add name to entry and save
+            entry.playerName = playerName;
+            highscoreService.saveScore(entry);
+            this.scoreSaved = true;
+        }
 
         // Reload page
         location.reload();
