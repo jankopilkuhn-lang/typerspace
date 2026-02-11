@@ -294,7 +294,7 @@ export class LeaderboardScene extends Phaser.State {
 
         const backBtn = this.game.add.text(
             this.game.width / 2,
-            this.game.height - 50,
+            this.game.height - 30,
             '← Zurück',
             buttonStyle
         );
