@@ -107,23 +107,23 @@ export class Boss {
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d')!;
 
-        // Higher resolution canvas for sharper text
+        // Higher resolution canvas with better aspect ratio
         const minWidth = 2048;
         const maxWidth = 4096;
         const estimatedWidth = Math.min(maxWidth, Math.max(minWidth, text.length * 80));
         canvas.width = estimatedWidth;
-        canvas.height = 256; // Double height for better quality
+        canvas.height = 512; // Increased height to reduce compression
 
         // Boss text has red background
         context.fillStyle = 'rgba(139, 0, 0, 0.9)';
         context.fillRect(0, 0, canvas.width, canvas.height);
 
         // Dynamic font size based on word length (scaled for higher canvas)
-        let fontSize = 144;
-        if (text.length > 10) fontSize = 128;
-        if (text.length > 12) fontSize = 112;
-        if (text.length > 15) fontSize = 96;
-        if (text.length > 18) fontSize = 80;
+        let fontSize = 220;
+        if (text.length > 10) fontSize = 200;
+        if (text.length > 12) fontSize = 180;
+        if (text.length > 15) fontSize = 160;
+        if (text.length > 18) fontSize = 140;
 
         context.font = `Bold ${fontSize}px Courier New`;
         context.fillStyle = '#ffff00'; // Yellow text
@@ -144,9 +144,11 @@ export class Boss {
         });
         const sprite = new THREE.Sprite(material);
 
-        // Dynamic scale based on canvas width
-        const scaleX = (canvas.width / 256) * 1;
-        sprite.scale.set(scaleX, 2, 1);
+        // Proper aspect ratio scaling
+        const aspectRatio = canvas.width / canvas.height;
+        const baseHeight = 2.5; // Increased base height
+        const scaleX = aspectRatio * baseHeight;
+        sprite.scale.set(scaleX, baseHeight, 1);
         sprite.renderOrder = 999;
 
         return sprite;
@@ -220,23 +222,23 @@ export class Boss {
         const canvas = document.createElement('canvas');
         const context = canvas.getContext('2d')!;
 
-        // Higher resolution canvas for sharper text
+        // Higher resolution canvas with better aspect ratio
         const minWidth = 2048;
         const maxWidth = 4096;
         const estimatedWidth = Math.min(maxWidth, Math.max(minWidth, remaining.length * 80));
         canvas.width = estimatedWidth;
-        canvas.height = 256; // Double height for better quality
+        canvas.height = 512; // Increased height to reduce compression
 
         // Red background
         context.fillStyle = 'rgba(139, 0, 0, 0.9)';
         context.fillRect(0, 0, canvas.width, canvas.height);
 
         // Dynamic font size based on remaining text length (scaled for higher canvas)
-        let fontSize = 144;
-        if (remaining.length > 10) fontSize = 128;
-        if (remaining.length > 12) fontSize = 112;
-        if (remaining.length > 15) fontSize = 96;
-        if (remaining.length > 18) fontSize = 80;
+        let fontSize = 220;
+        if (remaining.length > 10) fontSize = 200;
+        if (remaining.length > 12) fontSize = 180;
+        if (remaining.length > 15) fontSize = 160;
+        if (remaining.length > 18) fontSize = 140;
 
         context.font = `Bold ${fontSize}px Courier New`;
 
@@ -259,9 +261,11 @@ export class Boss {
         this.textSprite.material.map = texture;
         this.textSprite.material.needsUpdate = true;
 
-        // Update sprite scale based on canvas width
-        const scaleX = (canvas.width / 256) * 1;
-        this.textSprite.scale.set(scaleX, 2, 1);
+        // Proper aspect ratio scaling
+        const aspectRatio = canvas.width / canvas.height;
+        const baseHeight = 2.5; // Increased base height
+        const scaleX = aspectRatio * baseHeight;
+        this.textSprite.scale.set(scaleX, baseHeight, 1);
     }
 
     public resetProgress(): void {
